@@ -1,0 +1,11 @@
+# PR 생성 시 리뷰어 자동 요청 (작성자 본인은 제외됨)
+*                               @2-changmin @realp0tato
+
+# 영역별 담당 (docs/ROLES.md)
+/Assets/_Project/Scripts/XR/     @2-changmin
+/Assets/_Project/Scripts/Kart/   @2-changmin
+/Assets/_Project/Scripts/Items/  @2-changmin
+/Assets/_Project/Scripts/Race/   @realp0tato
+/Assets/_Project/Scripts/AI/     @realp0tato
+/Assets/_Project/Scripts/UI/     @realp0tato
+/Assets/_Project/Scripts/Audio/  @realp0tato
