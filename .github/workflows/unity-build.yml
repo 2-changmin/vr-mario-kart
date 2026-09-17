@@ -9,7 +9,6 @@ on:
       - "Assets/**"
       - "Packages/**"
       - "ProjectSettings/**"
-      - ".github/workflows/unity-build.yml"
 
 jobs:
   build:
