@@ -7,7 +7,7 @@
 | --- | --- |
 | 엔진 | Unity 6 LTS (6000.0.x) — 팀원 모두 **동일 버전** 사용 |
 | XR | OpenXR + XR Interaction Toolkit (XRI) 3.x |
-| 타깃 기기 | Meta Quest 2 / 3 (Android), PC 테스트는 XR Device Simulator |
+| 타깃 기기 | **Meta Quest 2 기준** (대여 실기기, Android) — Quest 3 호환, PC 테스트는 XR Device Simulator. 상세: [docs/DEVICE.md](docs/DEVICE.md) |
 | 렌더 파이프라인 | URP |
 | 작업자 | 이창민 ([@2-changmin](https://github.com/2-changmin)), 윤승희 ([@realp0tato](https://github.com/realp0tato)) |
 
@@ -21,6 +21,7 @@
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | 기능/비기능 요구사항 명세 (ID 기반, 이슈와 매핑) |
 | [docs/ROLES.md](docs/ROLES.md) | 역할 분담 — 누가 무엇을 담당하는지, 담당 폴더/씬 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 폴더 구조, 씬 구성, 주요 컴포넌트와 인터페이스 약속 |
+| [docs/DEVICE.md](docs/DEVICE.md) | 타깃 기기(Quest 2) 스펙, 시야각·UI·성능 기준값, Unity 설정, 실기기 테스트·대여 기기 관리 |
 | [docs/ASSETS.md](docs/ASSETS.md) | 사용할 외부 에셋 목록, 라이선스 규칙, 가져오기 규칙, 에셋 등록부/크레딧 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | **작업 규칙** — 이슈 → 브랜치 → PR → 리뷰 → 머지 |
 
