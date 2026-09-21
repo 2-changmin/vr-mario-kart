@@ -7,7 +7,7 @@
 | 프로젝트 | VR Mario Kart (가칭) |
 | 형태 | 가상현실 수업 과제, 2인 팀 |
 | 한 줄 소개 | VR 헤드셋을 쓰고 두 손으로 핸들을 잡고 달리는, 3분짜리 캐주얼 카트 레이싱 |
-| 플랫폼 | Meta Quest 2/3 (Standalone), 개발 중에는 PC + XR Device Simulator |
+| 플랫폼 | **Meta Quest 2 기준** (대여 실기기, Standalone), Quest 3 호환 — 개발 중에는 PC + XR Device Simulator. 기준값은 [DEVICE.md](DEVICE.md) |
 
 ## 2. 배경 & 목표
 
