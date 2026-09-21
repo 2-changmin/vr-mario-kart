@@ -146,7 +146,8 @@ Unity는 씬/프리팹 충돌이 나면 해결이 매우 어렵습니다. 아래
 
 - 텍스처, 모델, 오디오, 영상 등 바이너리는 **Git LFS**로 관리 (`.gitattributes`에 설정됨) → 클론 전에 `git lfs install`
 - GitHub 무료 LFS 용량은 1GB → 4K 텍스처, 고용량 원본 파일은 올리지 말고 압축/축소 후 사용
-- 외부 에셋은 필요한 파일만 `Assets/ThirdParty/`에 넣고, 출처/라이선스를 PR에 적기
+- 외부 에셋은 필요한 파일만 `Assets/ThirdParty/`에 넣고, 출처/라이선스를 [docs/ASSETS.md](docs/ASSETS.md)의 **에셋 등록부**에 추가
+- 사용 가능한 라이선스와 추천 에셋 목록은 [docs/ASSETS.md](docs/ASSETS.md) 참고 (Public 레포라 **Asset Store 에셋 커밋 금지**)
 
 ### 충돌이 났을 때
 

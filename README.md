@@ -21,6 +21,7 @@
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | 기능/비기능 요구사항 명세 (ID 기반, 이슈와 매핑) |
 | [docs/ROLES.md](docs/ROLES.md) | 역할 분담 — 누가 무엇을 담당하는지, 담당 폴더/씬 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 폴더 구조, 씬 구성, 주요 컴포넌트와 인터페이스 약속 |
+| [docs/ASSETS.md](docs/ASSETS.md) | 사용할 외부 에셋 목록, 라이선스 규칙, 가져오기 규칙, 에셋 등록부/크레딧 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | **작업 규칙** — 이슈 → 브랜치 → PR → 리뷰 → 머지 |
 
 ---
