@@ -5,7 +5,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| 엔진 | Unity 6 LTS (6000.0.x) — 팀원 모두 **동일 버전** 사용 |
+| 엔진 | Unity 6.3 LTS **`6000.3.15f1`** — 팀원 모두 **동일 버전** 사용 ([개발 환경](#-개발-환경)) |
 | XR | OpenXR + XR Interaction Toolkit (XRI) 3.x |
 | 타깃 기기 | **Meta Quest 2 기준** (대여 실기기, Android) — Quest 3 호환, PC 테스트는 XR Device Simulator. 상세: [docs/DEVICE.md](docs/DEVICE.md) |
 | 렌더 파이프라인 | URP |
@@ -62,10 +62,26 @@ git lfs install
 git clone https://github.com/2-changmin/vr-mario-kart.git
 cd vr-mario-kart
 
-# 3. Unity Hub에서 이 폴더를 열기 (Unity 6 LTS, Android Build Support 모듈 포함)
+# 3. Unity Hub에서 이 폴더를 열기 (Unity 6000.3.15f1, Android Build Support 모듈 포함)
 ```
 
-Unity 프로젝트 자체는 이슈 #1 에서 생성됩니다. 그 전까지 레포에는 문서와 설정 파일만 있습니다.
+처음 열면 패키지 설치와 임포트에 몇 분 걸립니다. 헤드셋 없이 테스트하려면 `Assets/_Project/Scenes/Sandbox/Changmin_Setup.unity`를 열고 Play (XR Device Simulator).
+
+---
+
+## 🛠️ 개발 환경
+
+| 항목 | 버전 / 값 |
+| --- | --- |
+| Unity Editor | **6000.3.15f1** (Unity Hub → Installs → Install Editor → Archive에서 정확한 버전 설치) |
+| Unity 모듈 | Android Build Support (OpenJDK, Android SDK & NDK Tools 포함) |
+| 렌더 파이프라인 | URP 17.3.0 |
+| XR Interaction Toolkit | 3.3.1 (+ Starter Assets, XR Device Simulator 샘플) |
+| OpenXR Plugin | 1.16.1 (Meta Quest Support 기능 그룹) |
+| XR Plug-in Management | 4.5.4 |
+| Input System | 1.19.0 |
+
+패키지 버전의 기준은 `Packages/manifest.json` / `packages-lock.json`이며, 임의로 올리지 않습니다 (NFR-05).
 
 ---
 
