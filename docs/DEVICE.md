@@ -95,7 +95,8 @@ Quest 2 기준으로 처음부터 이렇게 설정합니다. 바꿀 때는 `Proj
 | Graphics APIs | **Vulkan** (맨 위) | Meta 권장, 최신 최적화 기능은 Vulkan 전용 |
 | Color Space | **Linear** | Meta/Unity 권장 |
 | Texture Compression | **ASTC** | 모바일 GPU용 압축, 용량 절감 |
-| Minimum API Level | Unity 6 + OpenXR 패키지가 요구하는 값 (#1에서 확인해 여기 기록) | |
+| Minimum API Level | **Android 12L (API level 32)** | Quest 2/3 OS(Horizon OS)가 Android 12L 기반, Meta 권장 최소값. 기기 펌웨어는 최신으로 유지 |
+| Target API Level | Automatic (highest installed) | |
 
 ### XR Plug-in Management → OpenXR (Android 탭)
 
