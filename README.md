@@ -65,7 +65,7 @@ cd vr-mario-kart
 # 3. Unity Hub에서 이 폴더를 열기 (Unity 6000.3.15f1, Android Build Support 모듈 포함)
 ```
 
-처음 열면 패키지 설치와 임포트에 몇 분 걸립니다. 헤드셋 없이 테스트하려면 `Assets/_Project/Scenes/Sandbox/Changmin_Setup.unity`를 열고 Play (XR Device Simulator).
+처음 열면 패키지 설치와 임포트에 몇 분 걸립니다. 헤드셋 없이 테스트하려면 `Assets/_Project/Scenes/Sandbox/Changmin_Setup.unity`를 열고 Play (XR Interaction Simulator — 키보드·마우스로 헤드셋·컨트롤러 조작).
 
 ---
 
@@ -76,7 +76,7 @@ cd vr-mario-kart
 | Unity Editor | **6000.3.15f1** (Unity Hub → Installs → Install Editor → Archive에서 정확한 버전 설치) |
 | Unity 모듈 | Android Build Support (OpenJDK, Android SDK & NDK Tools 포함) |
 | 렌더 파이프라인 | URP 17.3.0 |
-| XR Interaction Toolkit | 3.3.1 (+ Starter Assets, XR Device Simulator 샘플) |
+| XR Interaction Toolkit | 3.3.1 (+ Starter Assets, XR Interaction Simulator 샘플) |
 | OpenXR Plugin | 1.16.1 (Meta Quest Support 기능 그룹) |
 | XR Plug-in Management | 4.5.4 |
 | Input System | 1.19.0 |
