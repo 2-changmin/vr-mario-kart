@@ -23,8 +23,11 @@ namespace VRKart.Race
         [SerializeField, Min(0f)] private float _startDelay = 1f;
         [SerializeField, Min(1)] private int _countdownFrom = 3;
         [SerializeField, Min(0.1f)] private float _countdownInterval = 1f;
+        [SerializeField, Min(0.05f)] private float _rankUpdateInterval = 0.2f;
 
         private readonly List<RaceResult> _results = new List<RaceResult>();
+        private readonly List<RaceResult> _standings = new List<RaceResult>();
+        private float _rankTimer;
         private readonly Dictionary<RaceProgress, RaceResult> _resultByParticipant = new Dictionary<RaceProgress, RaceResult>();
         private readonly List<IKart> _karts = new List<IKart>();
         private double _raceStartTime;
@@ -57,13 +60,11 @@ namespace VRKart.Race
             return (float)(Time.timeAsDouble - result.LapStartTime);
         }
 
-        // 완주자는 완주 순서, 미완주자는 지나온 체크포인트 수 → 다음 체크포인트까지 거리 순
+        // 완주자는 완주 순서, 미완주자는 출발 여부 → 지나온 체크포인트 수 → 다음 체크포인트까지 거리 순
         public IReadOnlyList<RaceResult> GetResults()
         {
-            var sorted = new List<RaceResult>(_results);
-            sorted.Sort(CompareResults);
-            for (int i = 0; i < sorted.Count; i++) sorted[i].Position = i + 1;
-            return sorted;
+            UpdateStandings();
+            return new List<RaceResult>(_standings);
         }
 
         public void StartRace()
@@ -128,6 +129,29 @@ namespace VRKart.Race
             if (_autoStart) StartRace();
         }
 
+        private void Update()
+        {
+            if (State == RaceState.Waiting) return;
+            _rankTimer += Time.deltaTime;
+            if (_rankTimer < _rankUpdateInterval) return;
+            _rankTimer = 0f;
+            UpdateStandings();
+        }
+
+        // 순위를 다시 매기고, 달리는 중인 카트의 RaceProgress.Rank를 갱신한다 (완주한 카트는 완주 순서로 이미 고정)
+        private void UpdateStandings()
+        {
+            _standings.Clear();
+            _standings.AddRange(_results);
+            _standings.Sort(CompareResults);
+            for (int i = 0; i < _standings.Count; i++)
+            {
+                RaceResult result = _standings[i];
+                result.Position = i + 1;
+                if (!result.IsFinished) result.Participant.SetRank(i + 1);
+            }
+        }
+
         private void OnDestroy()
         {
             if (IsPaused) Time.timeScale = 1f;
@@ -143,6 +167,7 @@ namespace VRKart.Race
         {
             if (_startDelay > 0f) yield return new WaitForSeconds(_startDelay);
 
+            UpdateStandings();
             SetState(RaceState.Countdown);
             for (int n = _countdownFrom; n > 0; n--)
             {
@@ -205,6 +230,9 @@ namespace VRKart.Race
         {
             if (a.IsFinished != b.IsFinished) return a.IsFinished ? -1 : 1;
             if (a.IsFinished) return a.FinishOrder.CompareTo(b.FinishOrder);
+
+            // 출발선을 넘은 카트와 아직 못 넘은 카트는 둘 다 지나온 체크포인트가 0이라, 거리 비교 전에 출발 여부로 먼저 나눈다
+            if (a.Participant.HasStarted != b.Participant.HasStarted) return a.Participant.HasStarted ? -1 : 1;
 
             int passed = b.Participant.CheckpointsPassed.CompareTo(a.Participant.CheckpointsPassed);
             if (passed != 0) return passed;

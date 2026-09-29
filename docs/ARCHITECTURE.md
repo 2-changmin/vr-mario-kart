@@ -196,7 +196,12 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 | `Restart()` / `ExitToMenu()` | `SceneLoader`로 현재 씬 다시 로드 / `MainMenu` 로드 |
 
 - 기록은 게임 시간(`Time.timeAsDouble`) 기준이라 **일시정지 시간은 빠집니다.** 1랩 기록은 GO부터 재므로 결승선까지 달려오는 거리가 포함됩니다.
-- 완주한 카트는 `RaceProgress.SetRank(완주 순서)`로 순위가 고정됩니다. 달리는 중인 카트의 실시간 순위는 #11에서 계산합니다.
+- **실시간 순위**: 카운트다운 시작 시와 그 뒤 **0.2초마다**(`Rank Update Interval`) 모든 참가자를 정렬해서 `RaceProgress.SetRank()`로 넣습니다(FR-RACE-07). 정렬 기준은 아래 순서입니다.
+  1. 완주한 카트가 앞 (완주 순서대로, 이후로는 고정)
+  2. **출발선을 넘은 카트가 앞.** 막 넘은 카트와 아직 못 넘은 카트는 둘 다 지나온 체크포인트가 0이라, 거리부터 비교하면 뒤 카트가 1위로 나옵니다.
+  3. 지나온 체크포인트 수(랩 포함 누적)가 많은 카트가 앞
+  4. 다음 체크포인트까지 직선거리가 짧은 카트가 앞
+- AI의 아이템 확률(#5 P2)이나 HUD는 `IRaceParticipant.Rank`만 읽으면 됩니다.
 - 플레이어가 완주하면 `Finished` → `OnRaceFinished`. AI는 그 뒤에도 계속 달리고, 완주하면 `OnParticipantFinished`가 발생합니다.
 - 일시정지 입력(컨트롤러 메뉴 버튼)과 메뉴 UI는 #12에서 이 API를 호출합니다.
 
@@ -219,7 +224,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - `RaceHud` — 대시보드: 눈에서 **0.85m, 20° 아래**, 시선에 수직([DEVICE.md](DEVICE.md) 2-1의 대시보드 자리). 720 × 170px(가로 약 46°)입니다.
   - 칸: 랩 `1/3`, 순위 `1위 /4`, 속도(km/h, `IKart.CurrentSpeed`), 시간(`RaceTime`, 0.1초 단위), 아이템 칸
   - 값이 바뀔 때만 텍스트를 갱신합니다(매 프레임 문자열 생성 X → GC 부담 없음).
-  - 순위는 `RaceProgress.Rank`입니다. **실시간 순위는 #11**이 계산하기 전까지 완주 순위만 반영됩니다(주행 중엔 1위).
+  - 순위는 `RaceProgress.Rank`입니다(RaceManager가 0.2초마다 갱신하는 실시간 순위).
   - **아이템 칸은 비어 있습니다.** #5 `ItemHolder`가 나오면 `Dashboard/ItemSlot/Icon` 이미지에 연결합니다.
 - `RaceMessages` — 가운데 메시지: 정면 **2m**, ±15° 안. `Pretendard-SemiBold SDF - Outline` 머티리얼(외곽선)이라 밝은 하늘 위에서도 읽힙니다.
   - 카운트다운 `3 · 2 · 1 · 출발!`(크게 떴다 작아짐), 랩 완료 시 `N랩  0:00.000` 2.5초, 마지막 랩 진입 시 `마지막 랩!`, 역주행 중 `역주행!`(빨강)
