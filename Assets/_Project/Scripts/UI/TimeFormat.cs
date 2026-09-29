@@ -13,5 +13,14 @@ namespace VRKart.UI
             int ms = totalMs % 1000;
             return $"{minutes}:{secs:00}.{ms:000}";
         }
+
+        // 83.46 → "1:23.4" (HUD처럼 자주 바뀌는 곳용, 0.1초 단위)
+        public static string FormatTenths(float seconds)
+        {
+            int totalTenths = Mathf.Max(0, Mathf.FloorToInt(seconds * 10f));
+            int minutes = totalTenths / 600;
+            int secs = totalTenths / 10 % 60;
+            return $"{minutes}:{secs:00}.{totalTenths % 10}";
+        }
     }
 }
