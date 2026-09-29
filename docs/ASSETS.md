@@ -154,6 +154,8 @@ Assets/
 | 에셋 | 출처 URL | 라이선스 | 레포 경로 | 사용처 | 추가한 사람 / PR |
 | --- | --- | --- | --- | --- | --- |
 | _(예시)_ Car Kit — kart 모델 2종 | https://kenney.nl/assets/car-kit | CC0 | `Assets/ThirdParty/Kenney/CarKit/` | Kart.prefab | 이창민 / #00 |
+| TMP Essential Resources — LiberationSans SDF 폰트, TMP 셰이더·설정 | Unity uGUI 패키지 내장 (`Packages/com.unity.ugui/Package Resources/TMP Essential Resources.unitypackage`, 다운로드 없음) | Unity Companion License, 폰트는 SIL OFL (`LiberationSans - OFL.txt` 동봉) | `Assets/TextMesh Pro/` (TMP 기본 위치) | 영문 대체 폰트(fallback), TMP 셰이더·설정 | 윤승희 / #12 결과 화면 PR |
+| Pretendard **SemiBold** (v1.3.9, `public/static/Pretendard-SemiBold.otf` 1개만) | https://github.com/orioncactus/pretendard/releases/tag/v1.3.9 | SIL OFL 1.1 (`OFL.txt` 동봉) | 원본 `Assets/ThirdParty/Fonts/Pretendard/`, TMP 폰트 에셋 `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset` | TMP 기본 폰트 (한글 UI) | 윤승희 / #12 결과 화면 PR |
 
 ## 7. 크레딧
 
