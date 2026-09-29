@@ -138,6 +138,7 @@ namespace VRKart.Core
 | `Environment/Ground_Grass` | 트랙 밖 넓은 바닥 (`Grass`) |
 | `RaceTrack/Checkpoint_00~15` | 체크포인트 16개 (약 55m 간격). `00` = 결승선. 아래 [체크포인트 & 랩 규칙](#체크포인트--랩-규칙) |
 | `KillZone` | 바닥 아래(y -20 ~ -10) 넓은 트리거. 떨어진 카트를 마지막 체크포인트로 리스폰 |
+| `UI/UI_ResultScreen`, `UI/UI_RaceHud`, `UI/EventSystem` | 결과 화면, 인게임 HUD, XR 레이 UI 입력(`XRUIInputModule`). 아래 [UI](#ui--결과-화면-ui_resultscreen) 절 |
 
 - 1랩 약 876m, 폭 10m 도로. 카트 크기(약 1.2m x 2m) 기준으로 나란히 4~5대가 달릴 수 있는 폭입니다.
 - `XR Origin (XR Rig)`, `TestKart_Temp`는 Kart 프리팹(#3)이 나오기 전까지의 **임시 오브젝트**입니다. Kart가 들어오면 삭제합니다.
