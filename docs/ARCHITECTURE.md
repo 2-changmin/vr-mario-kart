@@ -212,6 +212,20 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - XR 레이 클릭 조건: Canvas에 `TrackedDeviceGraphicRaycaster`가 있고, **씬에 `EventSystem` + `XRUIInputModule`** 이 있어야 합니다. 메뉴, 일시정지 UI도 공통입니다. 마우스 클릭도 됩니다.
 - 시간 표시 유틸: `TimeFormat.Format(초)` → `1:23.456`. HUD(#13)도 같이 씁니다.
 
+## UI — 인게임 HUD (`UI_RaceHud`)
+
+- 트랙 씬에 `Prefabs/UI/UI_RaceHud.prefab`을 1개 놓습니다. `RaceManager`는 비워두면 자동으로 찾습니다. 레이캐스터가 없어서 레이 클릭을 막지 않습니다.
+- **카운트다운이 시작될 때** 플레이어 눈 위치에 배치되고(`PlayerSpace`, 결과 화면과 같은 방식), **플레이어가 완주하면 숨깁니다.** 결과 화면 버튼을 가리지 않게 하려는 것입니다.
+- `RaceHud` — 대시보드: 눈에서 **0.85m, 20° 아래**, 시선에 수직([DEVICE.md](DEVICE.md) 2-1의 대시보드 자리). 720 × 170px(가로 약 46°)입니다.
+  - 칸: 랩 `1/3`, 순위 `1위 /4`, 속도(km/h, `IKart.CurrentSpeed`), 시간(`RaceTime`, 0.1초 단위), 아이템 칸
+  - 값이 바뀔 때만 텍스트를 갱신합니다(매 프레임 문자열 생성 X → GC 부담 없음).
+  - 순위는 `RaceProgress.Rank`입니다. **실시간 순위는 #11**이 계산하기 전까지 완주 순위만 반영됩니다(주행 중엔 1위).
+  - **아이템 칸은 비어 있습니다.** #5 `ItemHolder`가 나오면 `Dashboard/ItemSlot/Icon` 이미지에 연결합니다.
+- `RaceMessages` — 가운데 메시지: 정면 **2m**, ±15° 안. `Pretendard-SemiBold SDF - Outline` 머티리얼(외곽선)이라 밝은 하늘 위에서도 읽힙니다.
+  - 카운트다운 `3 · 2 · 1 · 출발!`(크게 떴다 작아짐), 랩 완료 시 `N랩  0:00.000` 2.5초, 마지막 랩 진입 시 `마지막 랩!`, 역주행 중 `역주행!`(빨강)
+  - 게임 시간 기준이라 일시정지하면 메시지도 멈춥니다.
+- ⚠️ **#2 조종석과 위치를 맞춰야 합니다.** 대시보드 자리(0.85m, 20° 아래)는 핸들·손과 겹칠 수 있습니다. 조종석이 나오면 `Content/Dashboard`의 위치·각도를 조정합니다(프리팹에서 바로 수정 가능).
+
 ### 한글 폰트 (TextMeshPro)
 
 - **TMP 기본 폰트 = `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset`** (TMP Settings에서 지정). 새로 만드는 TMP 텍스트는 자동으로 이 폰트를 씁니다. 영문 대체 폰트(fallback)는 LiberationSans입니다.
@@ -222,7 +236,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
   2. `Window > TextMeshPro > Font Asset Creator` — Source Font `Pretendard-SemiBold`, Sampling Point Size **Custom 48**, Padding **6**, Packing Optimum, Atlas **1024 x 1024**, Character Set **Characters from File** → 위 txt, Render Mode **SDFAA**
   3. **Generate Font Atlas → Save** 를 누르고 기존 `Pretendard-SemiBold SDF.asset`에 덮어쓰기 (GUID가 유지돼 프리팹 연결이 그대로)
 - 원본 폰트: `Assets/ThirdParty/Fonts/Pretendard/Pretendard-SemiBold.otf` (+ `OFL.txt`). 원본은 수정하지 않습니다.
-- 테스트 씬: `Scenes/Sandbox/Seunghee_UI.unity` — 작은 사각 코스에서 플레이어·AI 테스트 카트가 2랩 → 약 25초 뒤 결과 화면이 뜹니다.
+- 테스트 씬: `Scenes/Sandbox/Seunghee_UI.unity` — 작은 사각 코스(체크포인트 6개)에서 플레이어·AI 테스트 카트가 2랩을 돕니다. HUD가 보이다가 약 25초 뒤 결과 화면이 뜹니다.
 
 **씬 전환 (`SceneLoader`)**: `Load(이름)`, `LoadMainMenu()`, `ReloadCurrent()`. 씬은 **Build Profiles의 Scene List에 등록돼 있어야** 로드됩니다(없으면 에러 대신 경고). 이름 상수는 `SceneLoader.MainMenu`, `TrackMain`, `TrackTest`입니다.
 

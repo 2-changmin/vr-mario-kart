@@ -8,8 +8,7 @@ using VRKart.Race;
 
 namespace VRKart.UI
 {
-    // 플레이어가 완주하면 플레이어 앞(기본 1.5m)에 결과를 띄운다.
-    // 머리가 아니라 플레이어 루트(XR Origin, 나중엔 카트)의 자식으로 붙여서 카트와 함께 움직이고, 고개를 돌려도 따라오지 않는다.
+    // 플레이어가 완주하면 플레이어 앞(기본 1.5m)에 결과를 띄운다. 배치 방식은 PlayerSpace 참고.
     public sealed class ResultScreen : MonoBehaviour
     {
         [SerializeField] private RaceManager _raceManager;
@@ -31,7 +30,7 @@ namespace VRKart.UI
 
         public void Show()
         {
-            PlaceInFrontOfPlayer();
+            PlayerSpace.PlaceInFront(transform, _distance, _heightOffset);
             _panel.SetActive(true);
             Refresh();
         }
@@ -91,21 +90,6 @@ namespace VRKart.UI
         private void HandleRestart() => _raceManager.Restart();
 
         private void HandleMenu() => _raceManager.ExitToMenu();
-
-        private void PlaceInFrontOfPlayer()
-        {
-            Camera head = Camera.main;
-            if (head == null) return;
-
-            Vector3 forward = Vector3.ProjectOnPlane(head.transform.forward, Vector3.up);
-            if (forward.sqrMagnitude < 1e-4f) forward = Vector3.ProjectOnPlane(head.transform.up, Vector3.up);
-            forward.Normalize();
-
-            transform.SetParent(head.transform.root, true);
-            transform.SetPositionAndRotation(
-                head.transform.position + forward * _distance + Vector3.up * _heightOffset,
-                Quaternion.LookRotation(forward, Vector3.up));
-        }
 
         private static string DisplayName(RaceResult result) => result.IsPlayer ? "나" : result.Participant.name;
 
