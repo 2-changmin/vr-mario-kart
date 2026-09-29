@@ -176,6 +176,31 @@ namespace VRKart.Core
 | `Finished(RaceProgress)` | 마지막 랩 완료 |
 | `WrongWayChanged(RaceProgress, bool)` | 역주행 시작/해제 |
 
+## 레이스 흐름 (`RaceManager`)
+
+씬에 1개. 인스펙터에서 **`Player`에 플레이어 카트의 `RaceProgress`를 지정**합니다(참가자가 1명뿐이면 자동). 씬의 모든 `RaceProgress`를 참가자로 모읍니다.
+
+```
+Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) ──플레이어 완주──▶ Finished
+            모든 카트 SetControlEnabled(false)        SetControlEnabled(true)
+```
+
+| API | 설명 |
+| --- | --- |
+| `State`, `StateChanged` | 현재 상태 |
+| `RaceTime` | GO부터 흐른 시간(초). 일시정지 중엔 멈춤 |
+| `GetCurrentLapTime(RaceProgress)` | 진행 중인 랩의 시간 (HUD용) |
+| `GetResult(RaceProgress)` / `GetResults()` | 기록(`RaceResult`: 랩 타임 목록, 전체 기록, 완주 순서, 순위). `GetResults()`는 순위순 정렬 (결과 화면용) |
+| `Pause()` / `Resume()` / `TogglePause()`, `IsPaused`, `PauseChanged` | `Time.timeScale = 0`. Countdown, Racing 중에만 가능 |
+| `Restart()` / `ExitToMenu()` | `SceneLoader`로 현재 씬 다시 로드 / `MainMenu` 로드 |
+
+- 기록은 게임 시간(`Time.timeAsDouble`) 기준이라 **일시정지 시간은 빠집니다.** 1랩 기록은 GO부터 재므로 결승선까지 달려오는 거리가 포함됩니다.
+- 완주한 카트는 `RaceProgress.SetRank(완주 순서)`로 순위가 고정됩니다. 달리는 중인 카트의 실시간 순위는 #11에서 계산합니다.
+- 플레이어가 완주하면 `Finished` → `OnRaceFinished`. AI는 그 뒤에도 계속 달리고, 완주하면 `OnParticipantFinished`가 발생합니다.
+- 일시정지 입력(컨트롤러 메뉴 버튼)과 메뉴 UI는 #12에서 이 API를 호출합니다.
+
+**씬 전환 (`SceneLoader`)**: `Load(이름)`, `LoadMainMenu()`, `ReloadCurrent()`. 씬은 **Build Profiles의 Scene List에 등록돼 있어야** 로드됩니다(없으면 에러 대신 경고). 이름 상수는 `SceneLoader.MainMenu`, `TrackMain`, `TrackTest`입니다.
+
 ## 씬 흐름
 
 ```
