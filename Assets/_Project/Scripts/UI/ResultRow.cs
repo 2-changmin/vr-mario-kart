@@ -17,9 +17,9 @@ namespace VRKart.UI
 
         public void Set(RaceResult result, string displayName)
         {
-            _positionText.text = TimeFormat.Ordinal(result.Position);
+            _positionText.text = result.Position + "위";
             _nameText.text = displayName;
-            _timeText.text = result.IsFinished ? TimeFormat.Format(result.TotalTime) : "RACING";
+            _timeText.text = result.IsFinished ? TimeFormat.Format(result.TotalTime) : "주행 중";
             _background.color = result.IsPlayer ? _playerColor : _normalColor;
         }
     }

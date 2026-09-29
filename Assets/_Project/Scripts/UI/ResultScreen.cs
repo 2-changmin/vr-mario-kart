@@ -107,7 +107,7 @@ namespace VRKart.UI
                 Quaternion.LookRotation(forward, Vector3.up));
         }
 
-        private static string DisplayName(RaceResult result) => result.IsPlayer ? "YOU" : result.Participant.name;
+        private static string DisplayName(RaceResult result) => result.IsPlayer ? "나" : result.Participant.name;
 
         private static string BuildLapTimes(IReadOnlyList<float> lapTimes)
         {
@@ -119,8 +119,8 @@ namespace VRKart.UI
             for (int i = 0; i < lapTimes.Count; i++)
             {
                 if (i > 0) text.Append('\n');
-                text.Append($"LAP {i + 1}   {TimeFormat.Format(lapTimes[i])}");
-                if (i == best && lapTimes.Count > 1) text.Append("  <color=#FFC933>BEST</color>");
+                text.Append($"{i + 1}랩   {TimeFormat.Format(lapTimes[i])}");
+                if (i == best && lapTimes.Count > 1) text.Append("  <color=#FFC933>최고</color>");
             }
             return text.ToString();
         }

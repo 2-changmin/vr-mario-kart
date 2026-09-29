@@ -23,6 +23,7 @@ Assets/
 │  │  └─ Audio/                  # 사운드 매니저
 │  ├─ Prefabs/ (Kart, Items, Track, UI)
 │  ├─ Materials/  Models/  Textures/  Audio/  VFX/
+│  ├─ Fonts/                     # TMP 폰트 에셋 (Pretendard SDF), 포함 글자 목록
 │  └─ Settings/                  # URP, Input Actions 등
 └─ ThirdParty/
 ```
@@ -207,9 +208,20 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - 플레이어가 완주(`OnRaceFinished`)하면 **메인 카메라 수평 정면 1.5m, 눈높이 -0.15m**에 뜹니다. AI가 나중에 완주하면(`OnParticipantFinished`) 표가 바로 갱신됩니다.
 - 화면은 **카메라 루트(`Camera.main.transform.root`)의 자식**으로 붙습니다. 그래서 카트와 함께 움직이고, 고개를 돌려도 따라오지 않습니다(head-locked 아님). → **#2 약속**: XR Origin을 카트의 자식으로 두고, 카트는 씬 **최상위**에 둡니다(다른 부모 오브젝트 아래에 넣으면 그 부모에 붙음).
 - 크기: 월드 스페이스 Canvas 1200 × 720px × 0.001 = **1.2m × 0.72m** (1.5m에서 가로 약 44°). 글자는 38px 이상(약 3.8cm)이라 [DEVICE.md](DEVICE.md)의 기준(약 3cm)을 넘습니다.
+- 문구는 한글입니다(`완주!`, `순위 / 선수 / 기록`, `내 기록`, `1랩 … 최고`, `다시 시작`, `메뉴`, 미완주는 `주행 중`, 플레이어 이름은 `나`).
 - XR 레이 클릭 조건: Canvas에 `TrackedDeviceGraphicRaycaster`가 있고, **씬에 `EventSystem` + `XRUIInputModule`** 이 있어야 합니다. 메뉴, 일시정지 UI도 공통입니다. 마우스 클릭도 됩니다.
-- 텍스트는 TextMeshPro입니다. 기본 폰트(LiberationSans)는 **한글이 안 나와서** 지금은 영문입니다. 한글화는 [ASSETS.md](ASSETS.md)의 Pretendard 폰트 에셋을 추가한 뒤에 합니다.
-- 시간 표시 유틸: `TimeFormat.Format(초)` → `1:23.456`, `TimeFormat.Ordinal(n)` → `1st`. HUD(#13)도 같이 씁니다.
+- 시간 표시 유틸: `TimeFormat.Format(초)` → `1:23.456`. HUD(#13)도 같이 씁니다.
+
+### 한글 폰트 (TextMeshPro)
+
+- **TMP 기본 폰트 = `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset`** (TMP Settings에서 지정). 새로 만드는 TMP 텍스트는 자동으로 이 폰트를 씁니다. 영문 대체 폰트(fallback)는 LiberationSans입니다.
+- 한글 11,172자를 다 넣으면 에셋이 수십 MB가 되므로, **UI에 쓰는 글자만 넣은 정적(Static) 아틀라스**입니다. 실행 중에 에셋이 바뀌지 않아 git에 변경이 생기지 않습니다.
+- 들어 있는 글자는 `Assets/_Project/Fonts/Pretendard_Characters.txt`입니다. ASCII 전체, 한글 100자, 결과·메뉴·설정·HUD에 쓸 단어가 들어 있습니다.
+- ⚠️ **파일에 없는 한글을 쓰면 □로 나옵니다.** 새 문구를 쓸 때는:
+  1. `Pretendard_Characters.txt`에 그 글자(단어)를 추가
+  2. `Window > TextMeshPro > Font Asset Creator` — Source Font `Pretendard-SemiBold`, Sampling Point Size **Custom 48**, Padding **6**, Packing Optimum, Atlas **1024 x 1024**, Character Set **Characters from File** → 위 txt, Render Mode **SDFAA**
+  3. **Generate Font Atlas → Save** 를 누르고 기존 `Pretendard-SemiBold SDF.asset`에 덮어쓰기 (GUID가 유지돼 프리팹 연결이 그대로)
+- 원본 폰트: `Assets/ThirdParty/Fonts/Pretendard/Pretendard-SemiBold.otf` (+ `OFL.txt`). 원본은 수정하지 않습니다.
 - 테스트 씬: `Scenes/Sandbox/Seunghee_UI.unity` — 작은 사각 코스에서 플레이어·AI 테스트 카트가 2랩 → 약 25초 뒤 결과 화면이 뜹니다.
 
 **씬 전환 (`SceneLoader`)**: `Load(이름)`, `LoadMainMenu()`, `ReloadCurrent()`. 씬은 **Build Profiles의 Scene List에 등록돼 있어야** 로드됩니다(없으면 에러 대신 경고). 이름 상수는 `SceneLoader.MainMenu`, `TrackMain`, `TrackTest`입니다.
