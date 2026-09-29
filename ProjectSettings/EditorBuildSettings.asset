@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/Track_Test.unity
     guid: 236abd4151028c249833df5ada63c1c8
+  - enabled: 1
+    path: Assets/_Project/Scenes/MainMenu.unity
+    guid: 275631c66ac38dc41a66ac07e9a04dd7
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 6c51ac3efad938b46bcaba69b5152fe7, type: 2}

@@ -231,12 +231,26 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
   - 카운트다운 `3 · 2 · 1 · 출발!`(크게 떴다 작아짐), 랩 완료 시 `N랩  0:00.000` 2.5초, 마지막 랩 진입 시 `마지막 랩!`, 역주행 중 `역주행!`(빨강)
   - 게임 시간 기준이라 일시정지하면 메시지도 멈춥니다.
 - ⚠️ **#2 조종석과 위치를 맞춰야 합니다.** 대시보드 자리(0.85m, 20° 아래)는 핸들·손과 겹칠 수 있습니다. 조종석이 나오면 `Content/Dashboard`의 위치·각도를 조정합니다(프리팹에서 바로 수정 가능).
+- 일시정지 중에는 HUD를 숨깁니다(일시정지 메뉴를 가리지 않게). 재개하면 같은 자리에 다시 보입니다.
+
+## UI — 메인 메뉴 · 일시정지 (`UI_MainMenu`, `UI_PauseMenu`)
+
+- **`Scenes/MainMenu.unity`**: XR Origin, `EventSystem` + `XRUIInputModule`, 바닥, `UI_MainMenu`
+  - `MainMenu` — `시작` → `Race Scene`(지금은 `Track_Test`, 메인 트랙 #8이 나오면 `Track_Main`으로) / `설정` → 볼륨 슬라이더 / `종료`
+  - 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 정면 1.5m에 놓입니다(`PlayerSpace`).
+  - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
+- **설정 `GameSettings`** (`PlayerPrefs`): 지금은 `MasterVolume`(= `AudioListener.volume`)만 있습니다. 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
+  - **비네팅 on/off·강도는 #6 `ComfortSettings`(이창민)가 나오면** 설정 화면에 연결합니다. 멀미 옵션은 `ComfortSettings`가 저장까지 맡습니다.
+  - BGM/효과음 분리 볼륨은 #14 AudioManager에서 추가합니다.
+- **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다.
+  - XRI 기본 입력 액션에는 메뉴 버튼이 없어서, `PauseMenu`가 `<XRController>{LeftHand}/{MenuButton}` 바인딩을 직접 만듭니다.
+- 빌드 씬 목록: `MainMenu`를 **맨 끝에 추가만** 했습니다. **빌드 첫 씬(0번)은 아직 CI용 `Changmin_Setup`**이라, APK를 실행하면 메뉴가 아니라 그 씬이 먼저 뜹니다. 첫 씬을 `MainMenu`로 바꿀지는 이창민과 합의가 필요합니다.
 
 ### 한글 폰트 (TextMeshPro)
 
 - **TMP 기본 폰트 = `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset`** (TMP Settings에서 지정). 새로 만드는 TMP 텍스트는 자동으로 이 폰트를 씁니다. 영문 대체 폰트(fallback)는 LiberationSans입니다.
 - 한글 11,172자를 다 넣으면 에셋이 수십 MB가 되므로, **UI에 쓰는 글자만 넣은 정적(Static) 아틀라스**입니다. 실행 중에 에셋이 바뀌지 않아 git에 변경이 생기지 않습니다.
-- 들어 있는 글자는 `Assets/_Project/Fonts/Pretendard_Characters.txt`입니다. ASCII 전체, 한글 100자, 결과·메뉴·설정·HUD에 쓸 단어가 들어 있습니다.
+- 들어 있는 글자는 `Assets/_Project/Fonts/Pretendard_Characters.txt`입니다. ASCII 전체, 한글 103자, 결과·메뉴·설정·HUD에 쓸 단어가 들어 있습니다.
 - ⚠️ **파일에 없는 한글을 쓰면 □로 나옵니다.** 새 문구를 쓸 때는:
   1. `Pretendard_Characters.txt`에 그 글자(단어)를 추가
   2. `Window > TextMeshPro > Font Asset Creator` — Source Font `Pretendard-SemiBold`, Sampling Point Size **Custom 48**, Padding **6**, Packing Optimum, Atlas **1024 x 1024**, Character Set **Characters from File** → 위 txt, Render Mode **SDFAA**
@@ -253,3 +267,5 @@ MainMenu ──시작──▶ Track_Main (Countdown → Racing → Finished) �
     ▲                                                          │
     └──────────────────────────메뉴──────────────────────────────┘
 ```
+
+- 지금은 `Track_Main`(#8) 대신 `Track_Test`로 연결돼 있습니다. `메뉴`는 결과 화면의 `메뉴` 버튼과 일시정지 메뉴의 `메뉴로` 버튼 두 곳에서 갑니다.
