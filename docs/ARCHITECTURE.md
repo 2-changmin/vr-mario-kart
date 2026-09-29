@@ -199,6 +199,19 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - 플레이어가 완주하면 `Finished` → `OnRaceFinished`. AI는 그 뒤에도 계속 달리고, 완주하면 `OnParticipantFinished`가 발생합니다.
 - 일시정지 입력(컨트롤러 메뉴 버튼)과 메뉴 UI는 #12에서 이 API를 호출합니다.
 
+## UI — 결과 화면 (`UI_ResultScreen`)
+
+`Scripts/UI/` (`VRKart.UI`), `Prefabs/UI/`
+
+- 트랙 씬에 `Prefabs/UI/UI_ResultScreen.prefab`을 1개 놓습니다. `RaceManager`는 비워두면 자동으로 찾습니다.
+- 플레이어가 완주(`OnRaceFinished`)하면 **메인 카메라 수평 정면 1.5m, 눈높이 -0.15m**에 뜹니다. AI가 나중에 완주하면(`OnParticipantFinished`) 표가 바로 갱신됩니다.
+- 화면은 **카메라 루트(`Camera.main.transform.root`)의 자식**으로 붙습니다. 그래서 카트와 함께 움직이고, 고개를 돌려도 따라오지 않습니다(head-locked 아님). → **#2 약속**: XR Origin을 카트의 자식으로 두고, 카트는 씬 **최상위**에 둡니다(다른 부모 오브젝트 아래에 넣으면 그 부모에 붙음).
+- 크기: 월드 스페이스 Canvas 1200 × 720px × 0.001 = **1.2m × 0.72m** (1.5m에서 가로 약 44°). 글자는 38px 이상(약 3.8cm)이라 [DEVICE.md](DEVICE.md)의 기준(약 3cm)을 넘습니다.
+- XR 레이 클릭 조건: Canvas에 `TrackedDeviceGraphicRaycaster`가 있고, **씬에 `EventSystem` + `XRUIInputModule`** 이 있어야 합니다. 메뉴, 일시정지 UI도 공통입니다. 마우스 클릭도 됩니다.
+- 텍스트는 TextMeshPro입니다. 기본 폰트(LiberationSans)는 **한글이 안 나와서** 지금은 영문입니다. 한글화는 [ASSETS.md](ASSETS.md)의 Pretendard 폰트 에셋을 추가한 뒤에 합니다.
+- 시간 표시 유틸: `TimeFormat.Format(초)` → `1:23.456`, `TimeFormat.Ordinal(n)` → `1st`. HUD(#13)도 같이 씁니다.
+- 테스트 씬: `Scenes/Sandbox/Seunghee_UI.unity` — 작은 사각 코스에서 플레이어·AI 테스트 카트가 2랩 → 약 25초 뒤 결과 화면이 뜹니다.
+
 **씬 전환 (`SceneLoader`)**: `Load(이름)`, `LoadMainMenu()`, `ReloadCurrent()`. 씬은 **Build Profiles의 Scene List에 등록돼 있어야** 로드됩니다(없으면 에러 대신 경고). 이름 상수는 `SceneLoader.MainMenu`, `TrackMain`, `TrackTest`입니다.
 
 ## 씬 흐름
