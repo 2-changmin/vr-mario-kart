@@ -5,7 +5,7 @@ using VRKart.Race;
 
 namespace VRKart.UI
 {
-    // 인게임 HUD 루트. 카운트다운이 시작될 때 플레이어 눈 위치에 배치되고(PlayerSpace), 플레이어가 완주하면 숨긴다.
+    // 인게임 HUD 루트. 카운트다운이 시작될 때 플레이어 눈 위치에 배치되고(PlayerSpace), 일시정지 중과 플레이어 완주 후에는 숨긴다.
     // 자식의 대시보드(눈앞 아래)와 가운데 메시지(RaceMessages)는 루트 기준 위치에 미리 놓여 있다.
     public sealed class RaceHud : MonoBehaviour
     {
@@ -55,6 +55,7 @@ namespace VRKart.UI
             if (_raceManager == null) return;
             _raceManager.StateChanged += HandleStateChanged;
             _raceManager.OnRaceFinished += Hide;
+            _raceManager.PauseChanged += HandlePauseChanged;
         }
 
         private void OnDisable()
@@ -62,12 +63,16 @@ namespace VRKart.UI
             if (_raceManager == null) return;
             _raceManager.StateChanged -= HandleStateChanged;
             _raceManager.OnRaceFinished -= Hide;
+            _raceManager.PauseChanged -= HandlePauseChanged;
         }
 
         private void HandleStateChanged(RaceState state)
         {
             if (state == RaceState.Countdown) Show();
         }
+
+        // 일시정지 메뉴를 대시보드가 가리지 않도록 숨겼다가, 재개하면 그 자리에 다시 보인다
+        private void HandlePauseChanged(bool paused) => _content.SetActive(!paused);
 
         private void Update()
         {
