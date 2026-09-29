@@ -112,6 +112,34 @@ namespace VRKart.Core
 | `OnParticipantFinished(IRaceParticipant, float totalTime)` | 개별 완주 |
 | `OnRaceFinished()` | 플레이어 완주 (결과 화면) |
 
+## 레이어 / 태그 규칙
+
+`ProjectSettings/TagManager.asset`에 정의합니다. 트랙 조각은 아래 레이어로 나뉘어 있어서 카트 물리·AI·리스폰이 "지금 어디를 달리는지"를 레이어로 판별합니다.
+
+| 레이어 (번호) | 대상 | 용도 |
+| --- | --- | --- |
+| `Road` (8) | 도로 노면, 점프대 | 정상 주행 구간. 최고 속도 100% |
+| `Grass` (9) | 갓길, 트랙 밖 바닥 | 코스 밖 판정 → 최고 속도 감소 (FR-KART-05) |
+| `Wall` (10) | 도로 양옆 벽 | 코스 이탈 방지. 충돌 시 감속/튕김 처리 |
+
+- 카트 아래로 Raycast 해서 맞은 콜라이더의 **레이어**로 노면을 판별합니다 (태그는 쓰지 않음).
+- 새 레이어가 필요하면 이 표에 먼저 추가하고 PR에 `breaking` 라벨을 붙입니다 (`ProjectSettings/` 공동 영역).
+- 체크포인트, 아이템 박스 같은 **트리거**는 레이어가 아니라 각 담당 컴포넌트(`Checkpoint` 등)로 구분합니다.
+
+## 트랙 구성 (`Track_Test.unity`)
+
+| 오브젝트 | 설명 |
+| --- | --- |
+| `Track/Track_Segment_###` | 도로 조각. 프리팹 `Track_Segment`(폭 10m 도로 + 3m 갓길 + 0.5m 벽) 하나를 길이(Z 스케일)와 회전만 바꿔 이어 붙임 |
+| `Props/Track_StartLine` | 체크무늬 출발선 (콜라이더 없음) |
+| `Props/Track_StartGrid` | 출발 위치 `StartPos_1`~`StartPos_4`. **1번 = 플레이어, 2~4번 = AI**. 출발선 뒤쪽으로 2열 엇갈려 배치 |
+| `Props/Track_JumpRamp` | 점프대 (경사 7°, 높이 약 1.1m) |
+| `Environment/Ground_Grass` | 트랙 밖 넓은 바닥 (`Grass`) |
+
+- 1랩 약 876m, 폭 10m 도로. 카트 크기(약 1.2m x 2m) 기준으로 나란히 4~5대가 달릴 수 있는 폭입니다.
+- `XR Origin (XR Rig)`, `KartSizeRef_Temp`는 Kart 프리팹(#3)이 나오기 전까지의 **임시 오브젝트**입니다. Kart가 들어오면 삭제합니다.
+- 트랙 조각은 모두 `Static`이라 빌드 시 Static Batching으로 합쳐집니다 (NFR-01 드로우콜 예산).
+
 ## 씬 흐름
 
 ```
