@@ -117,12 +117,28 @@ namespace VRKart.Core
 
 `Scripts/XR/` (`VRKart.XR`), `Scripts/Kart/PlayerKartInput.cs`, `Prefabs/Kart/`
 
-- `Kart.prefab` = 플레이어/AI 공용 몸체(지금은 모양만, #3에서 Rigidbody·`KartController` 추가). `Kart_Player.prefab` = 그 **변형(Variant)** 으로 조종석(`Cockpit`)과 `XR Origin (XR Rig)`, `PlayerKartInput`, `ViewRecenter`를 더한 것. AI 카트는 `Kart.prefab`을 씁니다.
-- XR Origin은 카트 루트의 자식이고, 카트 루트는 씬 **최상위**에 둡니다(UI `PlayerSpace` 약속). XR Rig의 `Locomotion`(이동·회전·텔레포트)은 꺼 둡니다. 카트가 움직이기 때문입니다.
+- `Kart.prefab` = 플레이어/AI 공용 카트(몸체 + Rigidbody + `KartController`, 아래 Kart 절). `Kart_Player.prefab` = 그 **변형(Variant)** 으로 조종석(`Cockpit`)과 `XR Origin (XR Rig)`, `PlayerKartInput`, `ViewRecenter`를 더한 것. AI 카트는 `Kart.prefab`을 씁니다.
+- XR Origin은 카트 루트의 자식이고, 카트 루트는 씬 **최상위**에 둡니다(UI `PlayerSpace` 약속). XR Rig의 `Locomotion`(이동·회전·텔레포트)과 `CharacterController`는 꺼 둡니다. 카트가 움직이고, 캡슐 콜라이더가 카트 물리와 겹치기 때문입니다.
 - `SteeringWheel` (`XRBaseInteractable`, Select Mode Multiple): Grip으로 한 손/두 손 잡기. 잡은 손이 핸들 축(`transform.forward`) 둘레로 돈 각도(두 손이면 평균)만큼 돌고 ±90°에서 멈춥니다. 놓으면 360°/초로 중앙 복귀. `Normalized` = -1(좌) ~ 1(우).
 - `PlayerKartInput : IKartInput`: 핸들을 잡고 있으면 핸들 각도, 아니면 왼손 스틱(데드존 0.15)으로 조향. 버튼은 [DEVICE.md](DEVICE.md) 2-4 표대로 코드에서 바인딩합니다(`PauseMenu`와 같은 방식). `UseItem`은 `WasPressedThisFrame`이라 `Update`에서 읽어야 합니다.
 - `ViewRecenter`: 시작 3프레임 뒤, 그리고 **왼손 Y**를 누를 때 머리를 `Cockpit/SeatEye`(눈 위치, forward = 카트 정면)로 옮깁니다. UI는 뜰 때의 머리 위치 기준이라 리센터해도 다시 배치되지 않습니다.
 - 테스트 씬: `Scenes/Sandbox/Changmin_Steering.unity`. XR Interaction Simulator에서 `]`(오른손 선택) → `G`(잡기) + `Q`/`E`(위아래 이동)로 핸들 회전, `Shift+2` = 왼손 Y(리센터).
+
+## Kart — 주행 (`KartController`)
+
+`Scripts/Kart/` (`VRKart.Kart`), `Prefabs/Kart/Kart.prefab`, 튜닝 값 `Prefabs/Kart/KartStats_Default.asset`
+
+- `KartController : IKart`는 카트 루트에 붙고, **같은 게임오브젝트의 `IKartInput`** (`PlayerKartInput` 또는 `AIKartInput`)을 `Awake`에서 찾아 `FixedUpdate`마다 읽습니다. AI 카트는 `Kart.prefab` 루트에 `AIKartInput`만 붙이면 됩니다.
+- 트랙 씬에서는 카트 루트에 **`RaceProgress`를 추가**합니다(프리팹에는 없음 — `RaceTrack`이 없는 씬에서 에러가 나기 때문).
+- 구조: Rigidbody(150kg, 회전 잠금) + 지면에서 0.15m 떠 있는 콜라이더(바닥 캡슐 + 몸통 박스, 마찰 0). **높이는 앞/뒤 두 레이의 스프링 서스펜션**이 유지해서, 점프대 입구·작은 턱에 걸리지 않고 착지 충격도 흡수합니다.
+- 회전은 물리에 맡기지 않습니다: 요 = 조향, 기울기 = 지면 법선(부드럽게 따라감) → **뒤집히지 않습니다.** 지면 위에서는 속도를 진행 방향으로 덮어써서 옆·경사 미끄러짐이 없습니다.
+- 벽·카트에 막히면 실제로 움직인 만큼으로 속도가 줄어듭니다(정면 충돌 ≈ 0).
+- 노면: 레이가 맞은 콜라이더가 `Grass` 레이어면 최고 속도 × `OffRoadSpeedFactor`(0.5).
+- `SetControlEnabled(false)`: 속도 0으로 잡아 두고 밀리지 않음(카운트다운). `Respawn(pose)`: 위치·회전 적용, 속도·각속도 0.
+- `ApplyBoost(power, duration)`: **power = 최고 속도에 더하는 비율**(0.3 → +30%). 겹치면 큰 값. `SpinOut()`: 속도 × 0.3, 1.2초 조작 불가. 멀미(NFR-03) 때문에 카트를 빙글 돌리지 않습니다.
+- 추가 조회용: `IsGrounded`, `IsOffRoad`, `IsBoosting`, `IsSpinningOut` (#4 드리프트, HUD·사운드용)
+- 기본 튜닝: 최고 20 m/s(72 km/h), 가속 10 m/s², 후진 최고 6 m/s, 회전 110°/s(저속) → 60°/s(최고 속도).
+- 테스트 씬 `Changmin_Steering`: 도로 바닥, 잔디(`Grass_Patch`), `Track_JumpRamp`, 벽, 경사. 시뮬레이터 `]` → `T`(가속), `Shift+T`(브레이크/후진), `G`+`Q`/`E`(핸들).
 
 ## 레이어 / 태그 규칙
 
