@@ -165,10 +165,11 @@ namespace VRKart.Core
 | `Environment/Ground_Grass` | 트랙 밖 넓은 바닥 (`Grass`) |
 | `RaceTrack/Checkpoint_00~15` | 체크포인트 16개 (약 55m 간격). `00` = 결승선. 아래 [체크포인트 & 랩 규칙](#체크포인트--랩-규칙) |
 | `KillZone` | 바닥 아래(y -20 ~ -10) 넓은 트리거. 떨어진 카트를 마지막 체크포인트로 리스폰 |
-| `UI/UI_ResultScreen`, `UI/UI_RaceHud`, `UI/EventSystem` | 결과 화면, 인게임 HUD, XR 레이 UI 입력(`XRUIInputModule`). 아래 [UI](#ui--결과-화면-ui_resultscreen) 절 |
+| `UI/UI_ResultScreen`, `UI/UI_RaceHud`, `UI/UI_PauseMenu`, `UI/EventSystem` | 결과 화면, 인게임 HUD, 일시정지 메뉴, XR 레이 UI 입력(`XRUIInputModule`). 아래 [UI](#ui--결과-화면-ui_resultscreen) 절 |
+| `Kart_Player` | 플레이어 카트(`Prefabs/Kart/Kart_Player.prefab`, 조종석 + XR Origin 포함). **씬 최상위**, `StartPos_1` 위치·회전. 프리팹에 없는 **`RaceProgress`를 씬에서 추가**했고, `RaceManager`의 Player가 이것입니다. |
 
 - 1랩 약 876m, 폭 10m 도로. 카트 크기(약 1.2m x 2m) 기준으로 나란히 4~5대가 달릴 수 있는 폭입니다.
-- `XR Origin (XR Rig)`, `TestKart_Temp`는 Kart 프리팹(#3)이 나오기 전까지의 **임시 오브젝트**입니다. Kart가 들어오면 삭제합니다.
+- XR Origin은 `Kart_Player` 안에 있는 것 하나뿐입니다(MainCamera 1개). AI 카트(#11)는 `StartPos_2~4`에 놓습니다.
 - 트랙 조각은 모두 `Static`이라 빌드 시 Static Batching으로 합쳐집니다 (NFR-01 드로우콜 예산).
 
 ## 체크포인트 & 랩 규칙
@@ -249,15 +250,17 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 
 - 트랙 씬에 `Prefabs/UI/UI_RaceHud.prefab`을 1개 놓습니다. `RaceManager`는 비워두면 자동으로 찾습니다. 레이캐스터가 없어서 레이 클릭을 막지 않습니다.
 - **카운트다운이 시작될 때** 플레이어 눈 위치에 배치되고(`PlayerSpace`, 결과 화면과 같은 방식), **플레이어가 완주하면 숨깁니다.** 결과 화면 버튼을 가리지 않게 하려는 것입니다.
-- `RaceHud` — 대시보드: 눈에서 **0.85m, 20° 아래**, 시선에 수직([DEVICE.md](DEVICE.md) 2-1의 대시보드 자리). 720 × 170px(가로 약 46°)입니다.
-  - 칸: 랩 `1/3`, 순위 `1위 /4`, 속도(km/h, `IKart.CurrentSpeed`), 시간(`RaceTime`, 0.1초 단위), 아이템 칸
+- `RaceHud` — 대시보드: **핸들 양옆 두 패널**입니다. 눈에서 0.85m, **8° 아래, 좌우 ±28°**, 시선에 수직입니다.
+  - `Content/DashLeft`(240 × 360px): 랩 `1/3`, 순위 `1위 /4`, 아이템 칸
+  - `Content/DashRight`(240 × 250px): 속도(km/h, `IKart.CurrentSpeed`), 시간(`RaceTime`, 0.1초 단위)
+  - 왜 양옆인가: `Kart_Player`의 핸들(`Cockpit/SteeringWheel`, 꽉 찬 원판)이 눈에서 0.5m 앞 **약 8~43° 아래·좌우 ±22°**를 가립니다. 그래서 [DEVICE.md](DEVICE.md) 2-1의 대시보드 자리(15~30° 아래 가운데)가 통째로 핸들 뒤였습니다. 높이 8~15°, 좌우 20~34°를 시험해서 **핸들 모양에 한 점도 가리지 않으면서 가장 안쪽**(가로 19.6°~36.4°)인 자리를 골랐습니다.
+  - 핸들·조종석 모양이 바뀌면 이 자리도 다시 확인해야 합니다. 실제로 핸들을 잡은 손이 패널 안쪽 아래 모서리를 가리는지는 실기기에서 확인이 필요합니다.
   - 값이 바뀔 때만 텍스트를 갱신합니다(매 프레임 문자열 생성 X → GC 부담 없음).
   - 순위는 `RaceProgress.Rank`입니다(RaceManager가 0.2초마다 갱신하는 실시간 순위).
-  - **아이템 칸은 비어 있습니다.** #5 `ItemHolder`가 나오면 `Dashboard/ItemSlot/Icon` 이미지에 연결합니다.
+  - **아이템 칸은 비어 있습니다.** #5 `ItemHolder`가 나오면 `DashLeft/ItemSlot/Icon` 이미지에 연결합니다.
 - `RaceMessages` — 가운데 메시지: 정면 **2m**, ±15° 안. `Pretendard-SemiBold SDF - Outline` 머티리얼(외곽선)이라 밝은 하늘 위에서도 읽힙니다.
   - 카운트다운 `3 · 2 · 1 · 출발!`(크게 떴다 작아짐), 랩 완료 시 `N랩  0:00.000` 2.5초, 마지막 랩 진입 시 `마지막 랩!`, 역주행 중 `역주행!`(빨강)
   - 게임 시간 기준이라 일시정지하면 메시지도 멈춥니다.
-- ⚠️ **#2 조종석과 위치를 맞춰야 합니다.** 대시보드 자리(0.85m, 20° 아래)는 핸들·손과 겹칠 수 있습니다. 조종석이 나오면 `Content/Dashboard`의 위치·각도를 조정합니다(프리팹에서 바로 수정 가능).
 - 일시정지 중에는 HUD를 숨깁니다(일시정지 메뉴를 가리지 않게). 재개하면 같은 자리에 다시 보입니다.
 
 ## UI — 메인 메뉴 · 일시정지 (`UI_MainMenu`, `UI_PauseMenu`)
