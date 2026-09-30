@@ -169,7 +169,8 @@ namespace VRKart.Core
 | `Kart_Player` | 플레이어 카트(`Prefabs/Kart/Kart_Player.prefab`, 조종석 + XR Origin 포함). **씬 최상위**, `StartPos_1` 위치·회전. 프리팹에 없는 **`RaceProgress`를 씬에서 추가**했고, `RaceManager`의 Player가 이것입니다. |
 
 - 1랩 약 876m, 폭 10m 도로. 카트 크기(약 1.2m x 2m) 기준으로 나란히 4~5대가 달릴 수 있는 폭입니다.
-- XR Origin은 `Kart_Player` 안에 있는 것 하나뿐입니다(MainCamera 1개). AI 카트(#11)는 `StartPos_2~4`에 놓습니다.
+- XR Origin은 `Kart_Player` 안에 있는 것 하나뿐입니다(MainCamera 1개).
+- `AIPath`(웨이포인트 146개, 6m 간격)와 `AI 1`~`AI 3`(`Kart.prefab` + `RaceProgress` + `AIKartInput`, `StartPos_2~4`)이 있습니다. 아래 [AI 카트](#ai-카트-aikartinput) 절을 보세요.
 - 트랙 조각은 모두 `Static`이라 빌드 시 Static Batching으로 합쳐집니다 (NFR-01 드로우콜 예산).
 
 ## 체크포인트 & 랩 규칙
@@ -205,6 +206,27 @@ namespace VRKart.Core
 | `LapCompleted(RaceProgress, int lap)` | 랩 완료, 완료한 랩 번호(1부터) |
 | `Finished(RaceProgress)` | 마지막 랩 완료 |
 | `WrongWayChanged(RaceProgress, bool)` | 역주행 시작/해제 |
+
+## AI 카트 (`AIKartInput`)
+
+`Scripts/AI/` (`VRKart.AI`)
+
+- AI 카트 = `Prefabs/Kart/Kart.prefab` + 씬에서 **`RaceProgress`와 `AIKartInput`을 추가**. `KartController`가 같은 오브젝트의 `IKartInput`으로 읽습니다(#3에서 합의).
+- **`WaypointPath`**: 자식 Transform들이 순서대로 웨이포인트이고, 마지막 점은 첫 점으로 이어진 닫힌 경로입니다. 씬 뷰에 주황 선으로 보입니다. `Track_Test`의 `AIPath`는 도로 중심선을 6m 간격으로 딴 것입니다. 메인 트랙(#8)에서는 코스에 맞게 새로 놓습니다.
+- **`AIKartInput`** (인스펙터 값)
+
+| 묶음 | 값 | 설명 |
+| --- | --- | --- |
+| 실력 | `Speed Factor` (0.5~1) | 최고 속도 배율. **AI마다 다르게 해서 순위가 섞이게** (FR-AI-02) |
+| | `Line Offset` (m) | 도로 중심에서 오른쪽(+)/왼쪽(-)으로 달리는 라인. 카트끼리 한 줄로 겹치지 않게 |
+| | `Line Wobble` (m) | 천천히 흔들리는 좌우 오차 = 라인 실수 |
+| 조향 | `Look Ahead Base / Per Speed` | 경로를 따라 `기본 + 속도 × 계수`(m) 앞 지점을 보고 핸들을 꺾음. `Full Steer Angle`(30°) 이상이면 끝까지 |
+| 코너 | `Corner Look Ahead`(25m), `Min Corner Speed Factor`(0.55), `Sharp Corner Angle`(90°) | 앞 25m 안에서 가장 크게 꺾이는 각도에 비례해 목표 속도를 낮춤 |
+| 끼임 | `Stuck Speed`(1m/s), `Stuck Time`(1.5s), `Reverse Time`(1.2s), `Reverse Tries Before Respawn`(2) | 레이스 중 거의 못 움직이면 후진하며 방향을 틀고, 두 번 실패하면 `IKart.Respawn(LastCheckpointPose)` (FR-AI-03) |
+
+- `Track_Test` 설정: `AI 1` 0.96 / +1.5m, `AI 2` 0.92 / -1.5m, `AI 3` 0.88 / 0m. 플레이어 카트는 최고 속도 20m/s(`KartStats_Default`)입니다.
+- 완주한 AI는 목표 속도 60%로 계속 달립니다(멈춰서 뒤 카트를 막지 않게).
+- 아이템 사용(FR-ITEM-05, P2)은 #5 이후에 붙입니다(`UseItem`은 지금 항상 false).
 
 ## 레이스 흐름 (`RaceManager`)
 
