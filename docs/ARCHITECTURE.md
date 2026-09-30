@@ -113,6 +113,17 @@ namespace VRKart.Core
 | `OnParticipantFinished(IRaceParticipant, float totalTime)` | 개별 완주 |
 | `OnRaceFinished()` | 플레이어 완주 (결과 화면) |
 
+## XR — 조종석 (`Kart_Player`)
+
+`Scripts/XR/` (`VRKart.XR`), `Scripts/Kart/PlayerKartInput.cs`, `Prefabs/Kart/`
+
+- `Kart.prefab` = 플레이어/AI 공용 몸체(지금은 모양만, #3에서 Rigidbody·`KartController` 추가). `Kart_Player.prefab` = 그 **변형(Variant)** 으로 조종석(`Cockpit`)과 `XR Origin (XR Rig)`, `PlayerKartInput`, `ViewRecenter`를 더한 것. AI 카트는 `Kart.prefab`을 씁니다.
+- XR Origin은 카트 루트의 자식이고, 카트 루트는 씬 **최상위**에 둡니다(UI `PlayerSpace` 약속). XR Rig의 `Locomotion`(이동·회전·텔레포트)은 꺼 둡니다. 카트가 움직이기 때문입니다.
+- `SteeringWheel` (`XRBaseInteractable`, Select Mode Multiple): Grip으로 한 손/두 손 잡기. 잡은 손이 핸들 축(`transform.forward`) 둘레로 돈 각도(두 손이면 평균)만큼 돌고 ±90°에서 멈춥니다. 놓으면 360°/초로 중앙 복귀. `Normalized` = -1(좌) ~ 1(우).
+- `PlayerKartInput : IKartInput`: 핸들을 잡고 있으면 핸들 각도, 아니면 왼손 스틱(데드존 0.15)으로 조향. 버튼은 [DEVICE.md](DEVICE.md) 2-4 표대로 코드에서 바인딩합니다(`PauseMenu`와 같은 방식). `UseItem`은 `WasPressedThisFrame`이라 `Update`에서 읽어야 합니다.
+- `ViewRecenter`: 시작 3프레임 뒤, 그리고 **왼손 Y**를 누를 때 머리를 `Cockpit/SeatEye`(눈 위치, forward = 카트 정면)로 옮깁니다. UI는 뜰 때의 머리 위치 기준이라 리센터해도 다시 배치되지 않습니다.
+- 테스트 씬: `Scenes/Sandbox/Changmin_Steering.unity`. XR Interaction Simulator에서 `]`(오른손 선택) → `G`(잡기) + `Q`/`E`(위아래 이동)로 핸들 회전, `Shift+2` = 왼손 Y(리센터).
+
 ## 레이어 / 태그 규칙
 
 `ProjectSettings/TagManager.asset`에 정의합니다. 트랙 조각은 아래 레이어로 나뉘어 있어서 카트 물리·AI·리스폰이 "지금 어디를 달리는지"를 레이어로 판별합니다.
