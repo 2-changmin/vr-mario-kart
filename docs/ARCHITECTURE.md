@@ -123,7 +123,43 @@ namespace VRKart.Core
 - `SteeringWheel` (`XRBaseInteractable`, Select Mode Multiple): Grip으로 한 손/두 손 잡기. 잡은 손이 핸들 축(`transform.forward`) 둘레로 돈 각도(두 손이면 평균)만큼 돌고 ±90°에서 멈춥니다. 놓으면 360°/초로 중앙 복귀. `Normalized` = -1(좌) ~ 1(우).
 - `PlayerKartInput : IKartInput`: 핸들을 잡고 있으면 핸들 각도, 아니면 왼손 스틱(데드존 0.15)으로 조향. 버튼은 [DEVICE.md](DEVICE.md) 2-4 표대로 코드에서 바인딩합니다(`PauseMenu`와 같은 방식). `UseItem`은 `WasPressedThisFrame`이라 `Update`에서 읽어야 합니다.
 - `ViewRecenter`: 시작 3프레임 뒤, 그리고 **왼손 Y**를 누를 때 머리를 `Cockpit/SeatEye`(눈 위치, forward = 카트 정면)로 옮깁니다. UI는 뜰 때의 머리 위치 기준이라 리센터해도 다시 배치되지 않습니다.
+- 차량 외형·실내(핸들 모양, 계기판, 대시보드)는 아래 [차량 비주얼 규칙](#차량-비주얼-규칙-40)을 따릅니다.
 - 테스트 씬: `Scenes/Sandbox/Changmin_Steering.unity`. XR Interaction Simulator에서 `]`(오른손 선택) → `G`(잡기) + `Q`/`E`(위아래 이동)로 핸들 회전, `Shift+2` = 왼손 Y(리센터).
+
+## 차량 비주얼 규칙 (#40)
+
+조종석은 **닫힌 승용차 실내**(그란투리스모 실내 시점 구도), AI 차량은 **레이스 리버리를 입힌 투어링카**(GRID 구도)입니다. 참고 게임의 모델·로고는 쓰지 않고, Kenney Car Kit(CC0) + 직접 만든 메시로 만들었습니다. 결정 배경과 체크리스트는 이슈 #40에 있습니다.
+
+**꼭 지킬 것** (Claude로 수정할 때도 먼저 읽기)
+
+1. **비주얼과 물리는 분리.** 차 모델·실내·번호·브레이크등은 콜라이더 없는 자식입니다. `Kart.prefab` 루트의 `Rigidbody`, `BoxCollider`(1.2 x 0.3 x 2m), `CapsuleCollider`, `KartController` 값은 비주얼 작업에서 바꾸지 않습니다.
+2. 로우폴리 + 단색/팔레트 텍스처(Kenney 스타일). 실시간 반사(거울 카메라), 고해상도 텍스처는 Quest 성능 때문에 쓰지 않습니다(룸미러·사이드미러는 반사 없는 금속 머티리얼).
+3. 외부 모델은 `ThirdParty/Kenney/CarKit/` 원본 그대로. 색·번호는 `_Project`의 머티리얼/프리팹에서 바꿉니다.
+4. `Cockpit/SeatEye`(0, 1.05, -0.35), `ViewRecenter`, `SteeringWheel`의 **잡기 콜라이더·회전 로직·`_visual` 연결은 그대로.** 핸들은 `SteeringWheel/Visual` 아래 **모양만**(링 `Rim` + `Spoke` + `BottomSpoke` + `Hub`).
+5. 실내 부품은 **핸들 위쪽 틈 → 계기판**(눈 기준 약 13~24° 아래, 가운데)과 **앞유리 시야(수평 ~ 12° 아래)** 를 가리지 않습니다. A필러는 6cm 이하.
+6. 실내는 `Prefabs/Kart/Cockpit_Interior.prefab` 하나로, `Kart_Player/Cockpit` 아래에 붙어 있습니다. 실내 수정은 이 프리팹에서 합니다(`Kart_Player` 충돌 방지).
+7. HUD 대시보드(`DashLeft`/`DashRight`)는 실내의 `CockpitHudAnchors` 자리(`HudAnchor_Left`/`Right`)에 붙습니다. 화면 위치·크기를 바꾸려면 **앵커만** 옮기거나 스케일을 바꿉니다.
+8. 계기판·바퀴·브레이크등 스크립트는 **읽기만** 합니다(`IKart.CurrentSpeed`, 같은 카트의 `IKartInput.Steer`/`Brake`). 입력·물리에 쓰지 않습니다.
+9. AI 차량은 `Kart.prefab`의 **Variant**(`Kart_AI_*.prefab`)입니다. 박스 차체·좌석·실린더 바퀴(`Body`, `Seat`, `Wheels`)는 꺼 두고, 자식 `Car`(Car Kit 모델, **1.15배**)를 보여 줍니다.
+10. 리버리 = 머티리얼(팔레트에서 차체 색 칸만 바꾼 텍스처) + 레이스 번호(TextMeshPro). 모델 메시는 수정하지 않습니다.
+11. 씬의 AI 1~3에는 `RaceProgress`를 **씬에서** 추가합니다(프리팹에 넣지 않음). `AIKartInput`은 프리팹에 들어 있고 값(속도·라인)은 씬에서 덮어씁니다.
+12. 드리프트 이펙트(#4)·아이템(#5)을 카트에 붙일 때는 `Car`와 `Cockpit_Interior`를 건드리지 말고 **형제 오브젝트**로 추가합니다.
+
+**구성**
+
+| 대상 | 내용 |
+| --- | --- |
+| `Kart_Player` | `Body`·`Wheels` 꺼짐(`Seat`는 유지). `Car` = 세단 외형 **그림자 전용**(`ShadowsOnly` — 안에서 보면 창문 면이 시야를 가려서) + 보이는 `Hood`(파랑 보닛). `Cockpit/Cockpit_Interior`. 핸들 모양 교체 |
+| `Cockpit_Interior` | 대시보드(돌출 메시), 계기판 `GaugeCluster`(속도계 0~120km/h, 회전계 0~8천rpm·7천부터 레드존, 디지털 속도, 단수), 송풍구, 대시 장식 라인, HUD 화면 앵커 2개, 센터 콘솔·기어 레버, 도어 패널·창틀·팔걸이, A/B/C필러, 지붕, 룸미러, 사이드미러, 바닥·페달. 메시는 `Models/Cockpit/Cockpit_Meshes.asset`(핸들 링, 원판, 계기 테두리, 대시보드, 보닛) |
+| `Kart_AI_Sedan_Red` | `sedan-sports`, 빨강, **7** — 씬의 `AI 1` |
+| `Kart_AI_Hatch_Yellow` | `hatchback-sports`, 노랑, **22** — 씬의 `AI 2` |
+| `Kart_AI_Sedan_Green` | `sedan-sports`, 초록, **31** — 씬의 `AI 3` |
+
+- 플레이어 리버리는 파랑(`Car_Livery_Player_Blue`, 보닛 `Car_Paint_Player_Blue`)입니다.
+- `CarVisual` (`Scripts/Kart/`, `Car`에 붙음): 바퀴 피벗(`wheel-*_pivot`)을 속도만큼 굴리고 앞바퀴를 조향 × 25° 꺾음, 브레이크 입력 > 0.1이면 브레이크등(`BrakeLight` 쿼드, 원래 미등 위치) 발광. `MaterialPropertyBlock`이라 머티리얼을 복제하지 않습니다.
+- `CockpitGauges` (`Scripts/UI/`, `Cockpit_Interior`에 붙음): 바늘은 로컬 Z로 260° 시계 방향. 회전수·단수는 변속기가 없어서 속도 구간(최고 속도의 18/34/52/70/86/100%)으로 흉내 냅니다. 후진 `R`, 정지 `N`.
+- **새 AI 리버리 추가**: `Textures/Cars/Car_Livery_*.png`(원본 `colormap.png`에서 차체 칸 (6,1)·(3,1) 색만 바꾼 512px 팔레트, Point 필터) + `Materials/Cars/Car_Livery_*.mat` → `Kart_AI_*` Variant를 복제해서 `Car` 렌더러 머티리얼과 `RaceNumber/Number` 텍스트(도어 2 + 지붕 1)를 바꿉니다.
+- ⚠️ 차 모델(1.15배)은 콜라이더(길이 2m)보다 앞뒤로 약 0.45m 깁니다. 부딪힐 때 겹쳐 보이면 콜라이더를 차 크기에 맞출지 #3/#15에서 결정합니다(물리 변경이라 이창민 담당).
 
 ## Kart — 주행 (`KartController`)
 
@@ -247,7 +283,7 @@ namespace VRKart.Core
 
 `Scripts/AI/` (`VRKart.AI`)
 
-- AI 카트 = `Prefabs/Kart/Kart.prefab` + 씬에서 **`RaceProgress`와 `AIKartInput`을 추가**. `KartController`가 같은 오브젝트의 `IKartInput`으로 읽습니다(#3에서 합의).
+- AI 카트 = `Prefabs/Kart/Kart_AI_*.prefab`(`Kart.prefab`의 Variant + 차 외형 + `AIKartInput`, [차량 비주얼 규칙](#차량-비주얼-규칙-40)) + 씬에서 **`RaceProgress`를 추가**. `KartController`가 같은 오브젝트의 `IKartInput`으로 읽습니다(#3에서 합의).
 - **`WaypointPath`**: 자식 Transform들이 순서대로 웨이포인트이고, 마지막 점은 첫 점으로 이어진 닫힌 경로입니다. 씬 뷰에 주황 선으로 보입니다. `Track_Test`의 `AIPath`는 도로 중심선을 6m 간격으로 딴 것입니다. 메인 트랙(#8)에서는 코스에 맞게 새로 놓습니다.
 - **`AIKartInput`** (인스펙터 값)
 
@@ -308,10 +344,10 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 
 - 트랙 씬에 `Prefabs/UI/UI_RaceHud.prefab`을 1개 놓습니다. `RaceManager`는 비워두면 자동으로 찾습니다. 레이캐스터가 없어서 레이 클릭을 막지 않습니다.
 - **카운트다운이 시작될 때** 플레이어 눈 위치에 배치되고(`PlayerSpace`, 결과 화면과 같은 방식), **플레이어가 완주하면 숨깁니다.** 결과 화면 버튼을 가리지 않게 하려는 것입니다.
-- `RaceHud` — 대시보드: **핸들 양옆 두 패널**입니다. 눈에서 0.85m, **8° 아래, 좌우 ±28°**, 시선에 수직입니다.
+- `RaceHud` — 대시보드: **두 패널**. 플레이어 카트에 `CockpitHudAnchors`가 있으면(지금 `Kart_Player`) **카운트다운 때 조종석 대시보드 화면 자리로 옮겨 붙습니다**(`HudAnchor_Left`/`Right`: 핸들 양옆 대시보드 면, 눈 기준 약 ±27°·25° 아래, 0.55배 크기). 옮긴 뒤에도 보이기/숨기기(일시정지, 완주)는 그대로입니다. 앵커가 없는 카트에서는 아래처럼 눈에서 0.85m, **8° 아래, 좌우 ±28°** 에 둡니다.
   - `Content/DashLeft`(240 × 360px): 랩 `1/3`, 순위 `1위 /4`, 아이템 칸
   - `Content/DashRight`(240 × 250px): 속도(km/h, `IKart.CurrentSpeed`), 시간(`RaceTime`, 0.1초 단위)
-  - 왜 양옆인가: `Kart_Player`의 핸들(`Cockpit/SteeringWheel`, 꽉 찬 원판)이 눈에서 0.5m 앞 **약 8~43° 아래·좌우 ±22°**를 가립니다. 그래서 [DEVICE.md](DEVICE.md) 2-1의 대시보드 자리(15~30° 아래 가운데)가 통째로 핸들 뒤였습니다. 높이 8~15°, 좌우 20~34°를 시험해서 **핸들 모양에 한 점도 가리지 않으면서 가장 안쪽**(가로 19.6°~36.4°)인 자리를 골랐습니다.
+  - (앵커가 없을 때 기준) 왜 양옆인가: 예전 `Kart_Player`의 핸들(`Cockpit/SteeringWheel`, 꽉 찬 원판 — #40에서 링 모양으로 교체)이 눈에서 0.5m 앞 **약 8~43° 아래·좌우 ±22°**를 가립니다. 그래서 [DEVICE.md](DEVICE.md) 2-1의 대시보드 자리(15~30° 아래 가운데)가 통째로 핸들 뒤였습니다. 높이 8~15°, 좌우 20~34°를 시험해서 **핸들 모양에 한 점도 가리지 않으면서 가장 안쪽**(가로 19.6°~36.4°)인 자리를 골랐습니다.
   - 핸들·조종석 모양이 바뀌면 이 자리도 다시 확인해야 합니다. 실제로 핸들을 잡은 손이 패널 안쪽 아래 모서리를 가리는지는 실기기에서 확인이 필요합니다.
   - 값이 바뀔 때만 텍스트를 갱신합니다(매 프레임 문자열 생성 X → GC 부담 없음).
   - 순위는 `RaceProgress.Rank`입니다(RaceManager가 0.2초마다 갱신하는 실시간 순위).

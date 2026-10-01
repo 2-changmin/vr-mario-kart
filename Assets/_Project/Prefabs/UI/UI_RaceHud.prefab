@@ -557,6 +557,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VRKart.UI.RaceHud
   _raceManager: {fileID: 0}
   _content: {fileID: 494450557358270647}
+  _dashLeft: {fileID: 7684905691215810327}
+  _dashRight: {fileID: 7168816564527007447}
   _lapText: {fileID: 7188376287705772539}
   _rankText: {fileID: 9133238199640264214}
   _speedText: {fileID: 122975553864342191}
