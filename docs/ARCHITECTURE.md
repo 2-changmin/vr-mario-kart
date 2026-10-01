@@ -175,9 +175,36 @@ namespace VRKart.Core
 - 노면: 레이가 맞은 콜라이더가 `Grass` 레이어면 최고 속도 × `OffRoadSpeedFactor`(0.5).
 - `SetControlEnabled(false)`: 속도 0으로 잡아 두고 밀리지 않음(카운트다운). `Respawn(pose)`: 위치·회전 적용, 속도·각속도 0.
 - `ApplyBoost(power, duration)`: **power = 최고 속도에 더하는 비율**(0.3 → +30%). 겹치면 큰 값. `SpinOut()`: 속도 × 0.3, 1.2초 조작 불가. 멀미(NFR-03) 때문에 카트를 빙글 돌리지 않습니다.
-- 추가 조회용: `IsGrounded`, `IsOffRoad`, `IsBoosting`, `IsSpinningOut` (#4 드리프트, HUD·사운드용)
+- 추가 조회용: `IsGrounded`, `IsOffRoad`, `IsBoosting`, `IsSpinningOut`, `IsDrifting`, `DriftDirection`, `Stats` (HUD·사운드·이펙트용)
+- 이벤트 `BoostStarted(power, duration)`: **모든 부스트**(미니 터보, 대시 패드, 아이템)가 걸릴 때마다. 부스트 불꽃·소리는 여기에 붙이면 됩니다.
 - 기본 튜닝: 최고 20 m/s(72 km/h), 가속 10 m/s², 후진 최고 6 m/s, 회전 110°/s(저속) → 60°/s(최고 속도).
-- 테스트 씬 `Changmin_Steering`: 도로 바닥, 잔디(`Grass_Patch`), `Track_JumpRamp`, 벽, 경사. 시뮬레이터 `]` → `T`(가속), `Shift+T`(브레이크/후진), `G`+`Q`/`E`(핸들).
+- 테스트 씬 `Changmin_Steering`: 도로 바닥, 잔디(`Grass_Patch`), `Track_JumpRamp`, 벽, 경사, `DashPad`(z 22). PC 운전 모드(헤드셋 없을 때 자동) `T` 가속 · `J`/`L` 조향 · `Space` 드리프트, F1 → 시뮬레이터 `]` → `G`+`Q`/`E`(핸들).
+
+### 드리프트 & 미니 터보 (`DriftBoost`, #4)
+
+- `Kart.prefab` 루트에 붙어 있습니다(플레이어·AI 공통, AI는 `Drift = false`라 드리프트하지 않음). 판정·충전·이벤트는 `DriftBoost`, 회전·미끄러짐 물리는 `KartController`(`StartDrift`/`StopDrift`)가 맡습니다.
+- **시작**: 드리프트 버튼(A / PC `Space`) + 조향 `|Steer| ≥ 0.3` + 속도 8 m/s 이상 + 지면 위. 그때 조향 방향으로 **방향 고정**.
+- **드리프트 중**: 고정된 방향으로만 돕니다. 안쪽으로 꺾으면 회전 × 1.4, 바깥쪽으로 꺾으면 × 0.6. 진행 방향이 차 앞보다 **바깥으로 12°** 미끄러집니다(멀미 때문에 작게, `DriftSlipAngle`로 조절. 0이면 미끄러짐 없음).
+- **충전**: 지면 위에서 1초 → 1단, 2.2초 → 2단(공중에서는 충전 안 됨).
+- **해제**(버튼을 뗌): 1단 = +20% 0.7초, 2단 = +30% 1.3초 부스트. 0단이면 부스트 없음. 속도가 4 m/s 아래로 떨어지거나 스핀아웃·조작 잠금·리스폰이면 부스트 없이 끝납니다.
+- **이벤트** (`DriftBoost`)
+
+| 이벤트 | 시점 |
+| --- | --- |
+| `DriftStarted(int direction)` | 드리프트 시작. 1 = 오른쪽, -1 = 왼쪽 |
+| `DriftEnded()` | 드리프트 끝 (부스트 여부와 상관없이) |
+| `BoostLevelChanged(int level)` | 0 → 1 → 2, 끝나면 0 (불꽃 색) |
+| `BoostFired(int level, float duration)` | 미니 터보 발동 |
+
+- **이펙트 위치**: `Kart.prefab/DriftFX/RearLeft`, `RearRight` (빈 오브젝트, 뒷바퀴 바닥). [차량 비주얼 규칙](#차량-비주얼-규칙-40) 12대로 `Car`·실내와 형제입니다. AI 차 모델은 1.15배라 위치가 다르면 Variant에서 옮기면 됩니다.
+- 튜닝 값은 `KartStats`의 "드리프트" 항목.
+
+### 대시 패드 (`Prefabs/Items/DashPad.prefab`, #4)
+
+- `Scripts/Items/DashPad.cs` (`VRKart.Items`): 트리거에 들어온 카트(`GetComponentInParent<IKart>()`)에 `ApplyBoost(0.35, 1.2)` → 최고 속도 +35% 1.2초. 카트 콜라이더가 2개라 같은 카트는 0.5초 안에 다시 부스트하지 않습니다.
+- 크기: **가로 4m × 길이 3m** (도로 폭 10m에 한 줄 2개까지), 트리거 높이 1m. 루트·자식 모두 **`Ignore Raycast`** 레이어라 카트 지면 레이에 걸리지 않고, 보이는 판(주황 + 노란 화살표 2개, URP Unlit)은 콜라이더가 없습니다.
+- 배치: 프리팹의 **+Z(화살표 방향) = 진행 방향**으로 도로 면(y = 도로 높이)에 놓습니다.
+- 소리·이펙트는 카트 쪽 `KartController.BoostStarted`로 받으면 대시 패드·미니 터보·아이템을 한 곳에서 처리할 수 있습니다.
 
 ## 레이어 / 태그 규칙
 
