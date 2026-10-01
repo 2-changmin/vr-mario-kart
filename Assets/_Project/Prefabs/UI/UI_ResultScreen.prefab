@@ -1209,7 +1209,7 @@ MonoBehaviour:
   _restartButton: {fileID: 2032926774325696137}
   _menuButton: {fileID: 448525324877404639}
   _distance: 1.5
-  _heightOffset: -0.15
+  _heightOffset: 0.12
 --- !u!1 &8297716335841830875
 GameObject:
   m_ObjectHideFlags: 0
