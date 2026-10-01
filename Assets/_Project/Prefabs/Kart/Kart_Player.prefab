@@ -122,6 +122,60 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &759612503989231670
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7675939113791241582}
+  - component: {fileID: 6675623602587314046}
+  m_Layer: 0
+  m_Name: Audio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7675939113791241582
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759612503989231670}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0.9}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8923467021570488255}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6675623602587314046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759612503989231670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54c82f5cfe5586b449132a6b04776289, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRKart.Audio.EngineAudio
+  _layers:
+  - {fileID: 8300000, guid: 8f14c3afb9f8db74a8fd0bb33045f22c, type: 3}
+  - {fileID: 8300000, guid: f6d77be7d4d79af4fb2eaf6c7a1e3830, type: 3}
+  - {fileID: 8300000, guid: 923ad9df0c724b54490cbf48223bc2c6, type: 3}
+  _volume: 0.45
+  _offThrottleVolume: 0.65
+  _pitchRange: 0.35
+  _spatialBlend: 1
+  _minDistance: 2
+  _maxDistance: 60
 --- !u!1 &843552375895985348
 GameObject:
   m_ObjectHideFlags: 0
@@ -2004,6 +2058,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1886114312385260058, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1223594836408564533}
+    - targetCorrespondingSourceObject: {fileID: 1886114312385260058, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7675939113791241582}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 7362193095829635447, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
       insertIndex: -1
@@ -2011,6 +2068,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7362193095829635447, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6658804951031638506}
+    - targetCorrespondingSourceObject: {fileID: 7362193095829635447, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2681323013573784807}
+    - targetCorrespondingSourceObject: {fileID: 7362193095829635447, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 83888912547521505}
   m_SourcePrefab: {fileID: 100100000, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
 --- !u!1 &563394835510041810 stripped
 GameObject:
@@ -2046,6 +2109,127 @@ MonoBehaviour:
   _origin: {fileID: 8457427667233820479}
   _seatEye: {fileID: 212469119618642843}
   _startDelayFrames: 3
+--- !u!82 &2681323013573784807
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 563394835510041810}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &83888912547521505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 563394835510041810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c62edb96f403cd42aa79ca326ca4c5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRKart.Audio.CollisionAudio
+  _wallHits:
+  - {fileID: 8300000, guid: e59833ceb99cdef40a8b09cefb004476, type: 3}
+  - {fileID: 8300000, guid: c0334c0425922cc4094a3ee094081f16, type: 3}
+  - {fileID: 8300000, guid: ac5c409707b59564b8fcde64462e8944, type: 3}
+  _kartHits:
+  - {fileID: 8300000, guid: 4b266cd85f720044c84da9f78df457d8, type: 3}
+  - {fileID: 8300000, guid: 4f20cb675549c2c4c83a32bfc6d14a96, type: 3}
+  _minImpactSpeed: 1.5
+  _fullImpactSpeed: 12
+  _cooldown: 0.15
+  _volume: 0.9
+  _haptics: 1
 --- !u!4 &8923467021570488255 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1886114312385260058, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}

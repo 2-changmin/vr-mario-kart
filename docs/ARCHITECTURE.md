@@ -21,7 +21,7 @@ Assets/
 │  │  ├─ Track/                  # 트랙 중심선(TrackLayout), 도로 메시 생성, 에디터 버튼
 │  │  ├─ AI/                     # AI 입력, 웨이포인트
 │  │  ├─ UI/                     # 메뉴, HUD, 결과
-│  │  └─ Audio/                  # 사운드 매니저
+│  │  └─ Audio/                  # 음악, 효과음, 엔진음, 충돌음·진동, 볼륨
 │  ├─ Prefabs/ (Kart, Items, Track, UI)
 │  ├─ Materials/  Models/  Textures/  Audio/  VFX/
 │  ├─ Fonts/                     # TMP 폰트 에셋 (Pretendard SDF), 포함 글자 목록
@@ -360,12 +360,11 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 ## UI — 메인 메뉴 · 일시정지 (`UI_MainMenu`, `UI_PauseMenu`)
 
 - **`Scenes/MainMenu.unity`**: XR Origin, `EventSystem` + `XRUIInputModule`, 바닥, `UI_MainMenu`
-  - `MainMenu` — `시작` → `Race Scene`(`Track_Main`) / `설정` → 볼륨 슬라이더 / `종료`
+  - `MainMenu` — `시작` → `Race Scene`(`Track_Main`) / `설정` → 볼륨 슬라이더 3개(전체·배경음악·효과음) / `종료`
   - 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 정면 1.5m에 놓입니다(`PlayerSpace`).
   - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
-- **설정 `GameSettings`** (`PlayerPrefs`): 지금은 `MasterVolume`(= `AudioListener.volume`)만 있습니다. 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
+- **설정** (`PlayerPrefs`): `GameSettings.MasterVolume`(= `AudioListener.volume`), `AudioVolumes.Music`·`AudioVolumes.Sfx`(아래 사운드 절). 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
   - **비네팅 on/off·강도는 #6 `ComfortSettings`(이창민)가 나오면** 설정 화면에 연결합니다. 멀미 옵션은 `ComfortSettings`가 저장까지 맡습니다.
-  - BGM/효과음 분리 볼륨은 #14 AudioManager에서 추가합니다.
 - **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다.
   - XRI 기본 입력 액션에는 메뉴 버튼이 없어서, `PauseMenu`가 `<XRController>{LeftHand}/{MenuButton}` 바인딩을 직접 만듭니다.
 - 빌드 씬 목록: `MainMenu`를 **맨 끝에 추가만** 했습니다. **빌드 첫 씬(0번)은 아직 CI용 `Changmin_Setup`**이라, APK를 실행하면 메뉴가 아니라 그 씬이 먼저 뜹니다. 첫 씬을 `MainMenu`로 바꿀지는 이창민과 합의가 필요합니다.
@@ -383,6 +382,25 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - 테스트 씬: `Scenes/Sandbox/Seunghee_UI.unity` — 작은 사각 코스(체크포인트 6개)에서 플레이어·AI 테스트 카트가 2랩을 돕니다. HUD가 보이다가 약 25초 뒤 결과 화면이 뜹니다.
 
 **씬 전환 (`SceneLoader`)**: `Load(이름)`, `LoadMainMenu()`, `ReloadCurrent()`. 씬은 **Build Profiles의 Scene List에 등록돼 있어야** 로드됩니다(없으면 에러 대신 경고). 이름 상수는 `SceneLoader.MainMenu`, `TrackMain`, `TrackTest`입니다.
+
+## 사운드 & 진동 (#14)
+
+`Scripts/Audio/` (`VRKart.Audio`). 파일은 `ThirdParty/Kenney/InterfaceSounds`, `ImpactSounds`, `ThirdParty/OpenGameArt/EngineLoops`, `HyperflightRacing`(전부 CC0, [ASSETS.md](ASSETS.md) 등록부).
+
+| 컴포넌트 | 붙는 곳 | 역할 |
+| --- | --- | --- |
+| `AudioVolumes` | (static) | 배경음악·효과음 볼륨 0~1, `PlayerPrefs`(`settings.musicVolume`, `settings.sfxVolume`). 바뀌면 `Changed` |
+| `MusicPlayer` | 씬의 `Audio` | BGM 루프(2D, Streaming). 레이스 씬: 일시정지 중 40%, 플레이어 완주 후 70% |
+| `RaceAudio` | `Audio/RaceSfx` | 카운트다운 3·2·1 = 낮은 삐, GO = 같은 소리 1.5배 높이. 플레이어 랩 완료 / 마지막 랩 진입 / 완주 효과음. **일시정지 = `AudioListener.pause`** (엔진·충돌음 정지) |
+| `UiAudio` | `Audio/UiSfx` | 씬의 모든 `Button`(꺼진 것 포함)에 클릭음 |
+| `EngineAudio` | 카트의 자식 `Audio` (보닛 아래) | 공회전·중간·고회전 루프 3개를 회전수(`SimulatedGearbox`)로 섞고 음높이를 올림. 가속 페달을 떼면 65%. 3D(최소 2~3m, 최대 60m) |
+| `CollisionAudio` | 카트 루트 (Rigidbody 쪽) | 벽(`Wall`)·다른 카트와 부딪히면 충돌음(세기 = 상대 속도 1.5~12m/s). 바닥 접촉은 무시. 플레이어 카트는 **양손 컨트롤러 진동**(`ControllerHaptics`) |
+
+- 음악·UI·레이스 효과음은 `ignoreListenerPause`라 일시정지 메뉴에서도 들립니다.
+- 소리 볼륨 = 컴포넌트 기본 볼륨 × `AudioVolumes`(× 전체 볼륨은 `AudioListener`가 처리).
+- `SimulatedGearbox` (`Scripts/Core/`, 공용): 속도 비율로 단수(6단)·회전수를 흉내 냅니다. 계기판(`CockpitGauges`)과 엔진음이 같은 값을 써서 바늘과 소리가 맞습니다.
+- 임포트 설정: 효과음 = Decompress On Load + Vorbis, 엔진 루프 = ADPCM(루프 이음매 끊김 없음, 모노), BGM = Streaming + Vorbis.
+- 드리프트·부스트 소리(#4), 아이템 소리(#5)는 해당 기능이 나오면 `RaceAudio`처럼 이벤트를 구독해서 붙입니다.
 
 ## 씬 흐름
 

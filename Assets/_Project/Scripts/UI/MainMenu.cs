@@ -2,11 +2,12 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VRKart.Audio;
 using VRKart.Race;
 
 namespace VRKart.UI
 {
-    // 메인 메뉴: 시작 / 설정(볼륨) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
+    // 메인 메뉴: 시작 / 설정(전체·배경음악·효과음 볼륨) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
     public sealed class MainMenu : MonoBehaviour
     {
         [SerializeField] private string _raceScene = SceneLoader.TrackMain;
@@ -18,6 +19,10 @@ namespace VRKart.UI
         [SerializeField] private Button _backButton;
         [SerializeField] private Slider _volumeSlider;
         [SerializeField] private TMP_Text _volumeValueText;
+        [SerializeField] private Slider _musicSlider;
+        [SerializeField] private TMP_Text _musicValueText;
+        [SerializeField] private Slider _sfxSlider;
+        [SerializeField] private TMP_Text _sfxValueText;
 
         [Header("배치")]
         [SerializeField, Min(0.5f)] private float _distance = 1.5f;
@@ -34,6 +39,8 @@ namespace VRKart.UI
         public void ShowSettings()
         {
             _volumeSlider.SetValueWithoutNotify(GameSettings.MasterVolume);
+            if (_musicSlider != null) _musicSlider.SetValueWithoutNotify(AudioVolumes.Music);
+            if (_sfxSlider != null) _sfxSlider.SetValueWithoutNotify(AudioVolumes.Sfx);
             UpdateVolumeText();
             _mainPanel.SetActive(false);
             _settingsPanel.SetActive(true);
@@ -53,6 +60,8 @@ namespace VRKart.UI
             _quitButton.onClick.AddListener(HandleQuit);
             _backButton.onClick.AddListener(HandleBack);
             _volumeSlider.onValueChanged.AddListener(HandleVolumeChanged);
+            if (_musicSlider != null) _musicSlider.onValueChanged.AddListener(HandleMusicChanged);
+            if (_sfxSlider != null) _sfxSlider.onValueChanged.AddListener(HandleSfxChanged);
         }
 
         private void OnDisable()
@@ -62,6 +71,8 @@ namespace VRKart.UI
             _quitButton.onClick.RemoveListener(HandleQuit);
             _backButton.onClick.RemoveListener(HandleBack);
             _volumeSlider.onValueChanged.RemoveListener(HandleVolumeChanged);
+            if (_musicSlider != null) _musicSlider.onValueChanged.RemoveListener(HandleMusicChanged);
+            if (_sfxSlider != null) _sfxSlider.onValueChanged.RemoveListener(HandleSfxChanged);
         }
 
         private void HandleStart() => SceneLoader.Load(_raceScene);
@@ -78,7 +89,26 @@ namespace VRKart.UI
             UpdateVolumeText();
         }
 
-        private void UpdateVolumeText() => _volumeValueText.text = Mathf.RoundToInt(_volumeSlider.value * 100f) + "%";
+        private void HandleMusicChanged(float value)
+        {
+            AudioVolumes.Music = value;
+            UpdateVolumeText();
+        }
+
+        private void HandleSfxChanged(float value)
+        {
+            AudioVolumes.Sfx = value;
+            UpdateVolumeText();
+        }
+
+        private void UpdateVolumeText()
+        {
+            _volumeValueText.text = Percent(_volumeSlider);
+            if (_musicValueText != null) _musicValueText.text = Percent(_musicSlider);
+            if (_sfxValueText != null) _sfxValueText.text = Percent(_sfxSlider);
+        }
+
+        private static string Percent(Slider slider) => Mathf.RoundToInt(slider.value * 100f) + "%";
 
         private void HandleQuit()
         {
