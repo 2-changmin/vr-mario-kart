@@ -175,7 +175,7 @@ namespace VRKart.Core
 - 노면: 레이가 맞은 콜라이더가 `Grass` 레이어면 최고 속도 × `OffRoadSpeedFactor`(0.5).
 - `SetControlEnabled(false)`: 속도 0으로 잡아 두고 밀리지 않음(카운트다운). `Respawn(pose)`: 위치·회전 적용, 속도·각속도 0.
 - `ApplyBoost(power, duration)`: **power = 최고 속도에 더하는 비율**(0.3 → +30%). 겹치면 큰 값. `SpinOut()`: 속도 × 0.3, 1.2초 조작 불가. 멀미(NFR-03) 때문에 카트를 빙글 돌리지 않습니다.
-- 추가 조회용: `IsGrounded`, `IsOffRoad`, `IsBoosting`, `IsSpinningOut`, `IsDrifting`, `DriftDirection`, `Stats` (HUD·사운드·이펙트용)
+- 추가 조회용: `IsGrounded`, `IsOffRoad`, `IsBoosting`, `IsSpinningOut`, `IsControlEnabled`, `IsDrifting`, `DriftDirection`, `Stats` (HUD·사운드·이펙트용). 이벤트 `SpunOut()`: 바나나·쉘 피격 (소리·진동용)
 - 이벤트 `BoostStarted(power, duration)`: **모든 부스트**(미니 터보, 대시 패드, 아이템)가 걸릴 때마다. 부스트 불꽃·소리는 여기에 붙이면 됩니다.
 - 기본 튜닝: 최고 20 m/s(72 km/h), 가속 10 m/s², 후진 최고 6 m/s, 회전 110°/s(저속) → 60°/s(최고 속도).
 - 테스트 씬 `Changmin_Steering`: 도로 바닥, 잔디(`Grass_Patch`), `Track_JumpRamp`, 벽, 경사, `DashPad`(z 22). PC 운전 모드(헤드셋 없을 때 자동) `T` 가속 · `J`/`L` 조향 · `Space` 드리프트, F1 → 시뮬레이터 `]` → `G`+`Q`/`E`(핸들).
@@ -205,6 +205,34 @@ namespace VRKart.Core
 - 크기: **가로 4m × 길이 3m** (도로 폭 10m에 한 줄 2개까지), 트리거 높이 1m. 루트·자식 모두 **`Ignore Raycast`** 레이어라 카트 지면 레이에 걸리지 않고, 보이는 판(주황 + 노란 화살표 2개, URP Unlit)은 콜라이더가 없습니다.
 - 배치: 프리팹의 **+Z(화살표 방향) = 진행 방향**으로 도로 면(y = 도로 높이)에 놓습니다.
 - 소리·이펙트는 카트 쪽 `KartController.BoostStarted`로 받으면 대시 패드·미니 터보·아이템을 한 곳에서 처리할 수 있습니다.
+
+## Items — 아이템 (#5)
+
+`Scripts/Items/` (`VRKart.Items`), `Prefabs/Items/`
+
+| 구성 | 내용 |
+| --- | --- |
+| `ItemHolder` | **카트 루트**(`Kart.prefab`, 플레이어·AI 공통). 아이템 1개 보유. `CurrentItem`, `ItemChanged(ItemType)`(획득·사용, 사용하면 `None`), `ItemUsed(ItemType)`, `TryGive(item)`(들고 있으면 false). 같은 카트의 `IKartInput.UseItem`(플레이어 B / PC `E`)이 눌리면 사용. **조작 잠금(카운트다운)·스핀아웃 중에는 쓰지 않습니다.** |
+| `ItemBox.prefab` | 트리거 1.8m 정육면체(높이 0.9m 중심), 보이는 상자 0.8m가 돎. 지나간 카트가 **빈손이면** 아이템 1개 → 상자가 사라졌다가 **3초 뒤** 다시 생김. 이미 들고 있으면 무시(상자도 그대로). `PickedUp(ItemHolder, ItemType)` 이벤트 |
+| 부스터 | `ApplyBoost(0.4, 1.5)` — 최고 속도 +40% 1.5초 |
+| `Banana.prefab` | 카트 1.6m 뒤 바닥에 놓임. 밟은 카트 `SpinOut` 후 사라짐. 놓은 카트는 1초 면제. 60초 뒤 자동 삭제 |
+| `Shell.prefab` | 카트 1.8m 앞에서 **35 m/s 직진**, 지면 0.3m 위를 따라감. **`Wall` 레이어에서 1회 반사**, 두 번째 벽이면 사라짐. 맞은 카트 `SpinOut`. 쏜 카트 0.4초 면제, 6초 뒤 삭제. 트랙 밖으로 나가면 떨어짐 |
+| `ItemRoll` | 뽑기 확률(FR-ITEM-04). `IRaceParticipant.Rank`와 참가자 수(`RaceManager.GetResults().Count`, 획득할 때만 셈)로 1등 ↔ 꼴찌 사이를 보간. 레이스 밖이면 중간 값 |
+
+**확률** (1등 → 꼴찌로 선형 보간)
+
+| | 부스터 | 쉘 | 바나나 |
+| --- | --- | --- | --- |
+| 1등 | 15% | 40% | 45% |
+| 중간 | 38% | 34% | 27% |
+| 꼴찌 | 60% | 30% | 10% |
+
+- 아이템 박스·바나나·쉘은 모두 **`Ignore Raycast`** 레이어 → 카트 지면 레이에 안 걸림. 보이는 부분은 콜라이더 없음.
+- 카트 콜라이더가 2개라 트리거가 같은 스텝에 두 번 들어옵니다. 바나나·쉘은 첫 번째만 처리합니다(`SpunOut` 1회).
+- **배치(#8)**: 아이템 박스는 도로 폭 10m에 **2.5m 간격으로 한 줄 3~4개**. 프리팹 원점 = 바닥.
+- **HUD(#13)**: `RaceManager.Player.GetComponent<ItemHolder>()` → `CurrentItem` + `ItemChanged`.
+- **AI(#11, P2)**: AI 카트에도 `ItemHolder`가 있어 박스를 지나면 아이템을 받습니다. `AIKartInput.UseItem`을 `true`로 한 프레임 주면 사용합니다(지금은 항상 `false`라 들고만 있음).
+- **사운드(#14)**: `ItemBox.PickedUp`(획득), `ItemHolder.ItemUsed`(사용), `KartController.SpunOut`(피격), `KartController.BoostStarted`(부스터).
 
 ## 레이어 / 태그 규칙
 
