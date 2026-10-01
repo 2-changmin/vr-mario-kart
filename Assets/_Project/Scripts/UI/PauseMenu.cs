@@ -17,7 +17,8 @@ namespace VRKart.UI
 
         [Header("배치")]
         [SerializeField, Min(0.5f)] private float _distance = 1.5f;
-        [SerializeField] private float _heightOffset = -0.15f;
+        [Tooltip("눈높이 기준(m). 조종석 앞유리 안(눈 기준 10° 아래 ~ 19° 위)에 패널(64cm)이 다 들어오도록 조금 위로")]
+        [SerializeField] private float _heightOffset = 0.08f;
 
         private InputAction _pauseAction;
 

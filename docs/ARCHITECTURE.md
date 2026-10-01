@@ -124,6 +124,7 @@ namespace VRKart.Core
 - `PlayerKartInput : IKartInput`: 핸들을 잡고 있으면 핸들 각도, 아니면 왼손 스틱(데드존 0.15)으로 조향. 버튼은 [DEVICE.md](DEVICE.md) 2-4 표대로 코드에서 바인딩합니다(`PauseMenu`와 같은 방식). `UseItem`은 `WasPressedThisFrame`이라 `Update`에서 읽어야 합니다.
 - `ViewRecenter`: 시작 3프레임 뒤, 그리고 **왼손 Y**를 누를 때 머리를 `Cockpit/SeatEye`(눈 위치, forward = 카트 정면)로 옮깁니다. UI는 뜰 때의 머리 위치 기준이라 리센터해도 다시 배치되지 않습니다.
 - 차량 외형·실내(핸들 모양, 계기판, 대시보드)는 아래 [차량 비주얼 규칙](#차량-비주얼-규칙-40)을 따릅니다.
+- **PC 운전 모드** (에디터·PC 빌드만, `#if UNITY_EDITOR || UNITY_STANDALONE`): `Race/Testing/DesktopDriveController`가 실행 시 자동으로 생기고, 헤드셋이 없으면(`XRSettings.isDeviceActive == false`) `Core/DesktopDriveMode.Active`를 켜고 **XR Interaction Simulator를 끕니다**(R = 기기 리셋, Shift = 왼손 전환 등 키가 겹쳐서). `PlayerKartInput`은 이 모드일 때만 키보드를 함께 읽습니다: T 가속, Shift 브레이크(멈추면 0), R 후진(= 계속 브레이크), J/L 조향, Space 드리프트, E 아이템. P 일시정지, F1 모드 전환. 키 표는 README.
 - 테스트 씬: `Scenes/Sandbox/Changmin_Steering.unity`. XR Interaction Simulator에서 `]`(오른손 선택) → `G`(잡기) + `Q`/`E`(위아래 이동)로 핸들 회전, `Shift+2` = 왼손 Y(리센터).
 
 ## 차량 비주얼 규칙 (#40)
@@ -156,7 +157,8 @@ namespace VRKart.Core
 | `Kart_AI_Sedan_Green` | `sedan-sports`, 초록, **31** — 씬의 `AI 3` |
 
 - 플레이어 리버리는 파랑(`Car_Livery_Player_Blue`, 보닛 `Car_Paint_Player_Blue`)입니다.
-- `CarVisual` (`Scripts/Kart/`, `Car`에 붙음): 바퀴 피벗(`wheel-*_pivot`)을 속도만큼 굴리고 앞바퀴를 조향 × 25° 꺾음, 브레이크 입력 > 0.1이면 브레이크등(`BrakeLight` 쿼드, 원래 미등 위치) 발광. `MaterialPropertyBlock`이라 머티리얼을 복제하지 않습니다.
+- `CarVisual` (`Scripts/Kart/`, `Car`에 붙음): 바퀴 피벗(`wheel-*_pivot`)을 속도만큼 굴리고 앞바퀴를 조향 × 25° 꺾음, 브레이크 입력 > 0.1이면 브레이크등(`BrakeLight` 쿼드, 원래 미등 위치)을 밝은 빨강으로. `MaterialPropertyBlock`(`_BaseColor`)이라 머티리얼을 복제하지 않습니다.
+- **빛나 보이는 머티리얼은 URP Unlit**(`Cockpit_Needle`, `Cockpit_GaugeMark`, `Cockpit_Redline`, `Car_BrakeLight`). URP Lit의 Emission은 에디터가 저장할 때 `_EMISSION` 키워드를 빼버리는 일이 반복돼서 쓰지 않습니다(Quest에는 Bloom도 없어서 차이 없음).
 - `CockpitGauges` (`Scripts/UI/`, `Cockpit_Interior`에 붙음): 바늘은 로컬 Z로 260° 시계 방향. 회전수·단수는 변속기가 없어서 속도 구간(최고 속도의 18/34/52/70/86/100%)으로 흉내 냅니다. 후진 `R`, 정지 `N`.
 - **새 AI 리버리 추가**: `Textures/Cars/Car_Livery_*.png`(원본 `colormap.png`에서 차체 칸 (6,1)·(3,1) 색만 바꾼 512px 팔레트, Point 필터) + `Materials/Cars/Car_Livery_*.mat` → `Kart_AI_*` Variant를 복제해서 `Car` 렌더러 머티리얼과 `RaceNumber/Number` 텍스트(도어 2 + 지붕 1)를 바꿉니다.
 - ⚠️ 차 모델(1.15배)은 콜라이더(길이 2m)보다 앞뒤로 약 0.45m 깁니다. 부딪힐 때 겹쳐 보이면 콜라이더를 차 크기에 맞출지 #3/#15에서 결정합니다(물리 변경이라 이창민 담당).
@@ -365,7 +367,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
   - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
 - **설정** (`PlayerPrefs`): `GameSettings.MasterVolume`(= `AudioListener.volume`), `AudioVolumes.Music`·`AudioVolumes.Sfx`(아래 사운드 절). 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
   - **비네팅 on/off·강도는 #6 `ComfortSettings`(이창민)가 나오면** 설정 화면에 연결합니다. 멀미 옵션은 `ComfortSettings`가 저장까지 맡습니다.
-- **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다.
+- **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m, **눈높이 +0.08m**에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다. 결과 화면은 +0.12m. 조종석 앞유리 안(눈 기준 약 10° 아래 ~ 19° 위)에 패널 전체가 들어오게 한 값입니다(그보다 낮으면 대시보드에 가려짐).
   - XRI 기본 입력 액션에는 메뉴 버튼이 없어서, `PauseMenu`가 `<XRController>{LeftHand}/{MenuButton}` 바인딩을 직접 만듭니다.
 - 빌드 씬 목록: `MainMenu`를 **맨 끝에 추가만** 했습니다. **빌드 첫 씬(0번)은 아직 CI용 `Changmin_Setup`**이라, APK를 실행하면 메뉴가 아니라 그 씬이 먼저 뜹니다. 첫 씬을 `MainMenu`로 바꿀지는 이창민과 합의가 필요합니다.
 

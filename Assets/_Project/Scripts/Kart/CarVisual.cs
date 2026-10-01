@@ -7,7 +7,7 @@ namespace VRKart.Kart
     // 물리·입력에는 영향이 없다. 카트 루트(부모)의 IKart, IKartInput을 읽는다. (디자인 규칙: 이슈 #40)
     public sealed class CarVisual : MonoBehaviour
     {
-        private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
         [Tooltip("바퀴 회전축 피벗. 피벗 중심 = 바퀴 중심, 로컬 X = 차축")]
         [SerializeField] private Transform[] _frontWheels;
@@ -16,10 +16,10 @@ namespace VRKart.Kart
         [SerializeField, Range(0f, 45f)] private float _maxSteerAngle = 25f;
         [SerializeField, Min(0f)] private float _steerSmoothing = 10f;
 
-        [Header("브레이크등")]
+        [Header("브레이크등 (Unlit 머티리얼의 색을 바꿈)")]
         [SerializeField] private Renderer[] _brakeLights;
-        [SerializeField, ColorUsage(false, true)] private Color _brakeOff = new Color(0.25f, 0.02f, 0.02f);
-        [SerializeField, ColorUsage(false, true)] private Color _brakeOn = new Color(4f, 0.25f, 0.2f);
+        [SerializeField] private Color _brakeOff = new Color(0.45f, 0.04f, 0.04f);
+        [SerializeField] private Color _brakeOn = new Color(1f, 0.12f, 0.08f);
 
         private IKart _kart;
         private IKartInput _input;
@@ -62,7 +62,7 @@ namespace VRKart.Kart
             {
                 if (light == null) continue;
                 light.GetPropertyBlock(_block);
-                _block.SetColor(EmissionColorId, on ? _brakeOn : _brakeOff);
+                _block.SetColor(BaseColorId, on ? _brakeOn : _brakeOff);
                 light.SetPropertyBlock(_block);
             }
         }
