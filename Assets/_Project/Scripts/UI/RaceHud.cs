@@ -7,10 +7,13 @@ namespace VRKart.UI
 {
     // 인게임 HUD 루트. 카운트다운이 시작될 때 플레이어 눈 위치에 배치되고(PlayerSpace), 일시정지 중과 플레이어 완주 후에는 숨긴다.
     // 자식의 대시보드(눈앞 아래)와 가운데 메시지(RaceMessages)는 루트 기준 위치에 미리 놓여 있다.
+    // 플레이어 카트에 CockpitHudAnchors(조종석 화면 자리)가 있으면 대시보드 두 장을 그 자리로 옮긴다.
     public sealed class RaceHud : MonoBehaviour
     {
         [SerializeField] private RaceManager _raceManager;
         [SerializeField] private GameObject _content;
+        [SerializeField] private Transform _dashLeft;
+        [SerializeField] private Transform _dashRight;
 
         [Header("대시보드")]
         [SerializeField] private TMP_Text _lapText;
@@ -25,22 +28,43 @@ namespace VRKart.UI
         private int _shownRank = -1;
         private int _shownSpeed = -1;
         private int _shownTenths = -1;
+        private bool _docked;
 
         public bool IsShown => _content.activeSelf;
 
         public void Show()
         {
             PlayerSpace.PlaceInFront(transform, 0f, 0f);
-            _content.SetActive(true);
+            DockToCockpit();
+            SetVisible(true);
             Refresh(true);
         }
 
-        public void Hide() => _content.SetActive(false);
+        public void Hide() => SetVisible(false);
 
         private void Awake()
         {
             if (_raceManager == null) _raceManager = FindAnyObjectByType<RaceManager>();
             _content.SetActive(false);
+        }
+
+        // 조종석 화면 자리가 있으면 대시보드를 옮긴다. 옮긴 뒤에는 _content 밖에 있으므로 보이기/숨기기를 따로 한다.
+        private void DockToCockpit()
+        {
+            if (_docked || transform.root == transform) return;
+            var anchors = transform.root.GetComponentInChildren<CockpitHudAnchors>();
+            if (anchors == null) return;
+            CockpitHudAnchors.Dock(_dashLeft, anchors.Left);
+            CockpitHudAnchors.Dock(_dashRight, anchors.Right);
+            _docked = true;
+        }
+
+        private void SetVisible(bool visible)
+        {
+            _content.SetActive(visible);
+            if (!_docked) return;
+            if (_dashLeft != null) _dashLeft.gameObject.SetActive(visible);
+            if (_dashRight != null) _dashRight.gameObject.SetActive(visible);
         }
 
         private void Start()
@@ -72,7 +96,7 @@ namespace VRKart.UI
         }
 
         // 일시정지 메뉴를 대시보드가 가리지 않도록 숨겼다가, 재개하면 그 자리에 다시 보인다
-        private void HandlePauseChanged(bool paused) => _content.SetActive(!paused);
+        private void HandlePauseChanged(bool paused) => SetVisible(!paused);
 
         private void Update()
         {
