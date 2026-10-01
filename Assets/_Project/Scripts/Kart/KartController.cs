@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using VRKart.Core;
 
@@ -31,6 +32,11 @@ namespace VRKart.Kart
         private float _boostPower;
         private float _boostTimer;
         private float _spinOutTimer;
+        private int _driftDirection;   // 0 = 드리프트 아님, 1 = 오른쪽, -1 = 왼쪽
+        private float _slipAngle;      // 차 앞 방향 대비 진행 방향 각도 (드리프트 미끄러짐)
+
+        // 부스트가 걸릴 때마다 (미니 터보, 대시 패드, 아이템 공통). power, duration — 이펙트·사운드용
+        public event Action<float, float> BoostStarted;
 
         public float CurrentSpeed => _speed;
         public float MaxSpeed => _stats.MaxSpeed;
@@ -38,18 +44,30 @@ namespace VRKart.Kart
         public bool IsOffRoad => _isOffRoad;
         public bool IsBoosting => _boostTimer > 0f;
         public bool IsSpinningOut => _spinOutTimer > 0f;
+        public bool IsDrifting => _driftDirection != 0;
+        public int DriftDirection => _driftDirection;
+        public KartStats Stats => _stats;
 
         public void SetControlEnabled(bool enabled)
         {
             _controlEnabled = enabled;
-            if (!enabled) _speed = 0f;
+            if (!enabled)
+            {
+                _speed = 0f;
+                StopDrift();
+            }
         }
+
+        // 드리프트 상태는 DriftBoost가 정한다. 드리프트 중에는 direction 쪽으로만 돌고 진행 방향이 바깥으로 미끄러진다.
+        public void StartDrift(int direction) => _driftDirection = direction > 0 ? 1 : -1;
+        public void StopDrift() => _driftDirection = 0;
 
         // power = 최고 속도에 더하는 비율 (0.3 → +30%), duration = 초. 겹치면 큰 값을 쓴다.
         public void ApplyBoost(float power, float duration)
         {
             _boostPower = IsBoosting ? Mathf.Max(_boostPower, power) : power;
             _boostTimer = Mathf.Max(_boostTimer, duration);
+            BoostStarted?.Invoke(power, duration);
         }
 
         // 피격: 크게 감속하고 잠시 조작 불가. 멀미 때문에 카트(=시점)를 회전시키지 않는다 (NFR-03).
@@ -58,6 +76,7 @@ namespace VRKart.Kart
             _spinOutTimer = _stats.SpinOutDuration;
             _speed *= _stats.SpinOutSpeedFactor;
             _boostTimer = 0f;
+            StopDrift();
         }
 
         public void Respawn(Pose pose)
@@ -73,6 +92,8 @@ namespace VRKart.Kart
             _moveDirection = pose.rotation * Vector3.forward;
             _boostTimer = 0f;
             _spinOutTimer = 0f;
+            _driftDirection = 0;
+            _slipAngle = 0f;
         }
 
         private void Awake()
@@ -186,7 +207,17 @@ namespace VRKart.Kart
             float speedRatio = Mathf.Clamp01(Mathf.Abs(_speed) / _stats.MaxSpeed);
             float turnRate = Mathf.Lerp(_stats.TurnRateLowSpeed, _stats.TurnRateHighSpeed, speedRatio);
             float ramp = Mathf.Clamp01(Mathf.Abs(_speed) / _stats.TurnRampSpeed);
+
+            if (IsDrifting)
+            {
+                // 드리프트 방향으로만 돈다. 안쪽으로 꺾으면 더 날카롭게, 바깥쪽으로 꺾으면 완만하게.
+                float inward = Mathf.InverseLerp(-1f, 1f, steer * _driftDirection);
+                steer = _driftDirection * Mathf.Lerp(_stats.DriftTurnMin, _stats.DriftTurnMax, inward);
+            }
             _yaw += steer * turnRate * ramp * Mathf.Sign(_speed) * dt;
+
+            float targetSlip = _driftDirection * _stats.DriftSlipAngle;
+            _slipAngle = Mathf.Lerp(_slipAngle, targetSlip, 1f - Mathf.Exp(-_stats.DriftSlipSpeed * dt));
         }
 
         private void UpdateRotation(float dt)
@@ -208,7 +239,7 @@ namespace VRKart.Kart
                 float gravityCancel = -Vector3.Dot(Physics.gravity, _groundNormal);   // 이번 스텝에 더해질 중력을 상쇄
                 normalSpeed += (spring + gravityCancel) * dt;
 
-                _moveDirection = ForwardOnPlane(_groundNormal);
+                _moveDirection = Quaternion.AngleAxis(-_slipAngle, _groundNormal) * ForwardOnPlane(_groundNormal);
                 velocity = _moveDirection * _speed + _groundNormal * normalSpeed;
             }
             else

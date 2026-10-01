@@ -37,6 +37,20 @@ namespace VRKart.Kart
         [Header("부스트")]
         [SerializeField, Min(0f)] private float _boostAcceleration = 30f;
 
+        [Header("드리프트")]
+        [SerializeField, Min(0f)] private float _driftMinSpeed = 8f;           // 이 속도 이상에서만 드리프트 시작
+        [SerializeField, Range(0f, 1f)] private float _driftSteerThreshold = 0.3f; // 시작할 때 필요한 조향량
+        [SerializeField, Min(0f)] private float _driftTurnMin = 0.6f;          // 바깥쪽으로 꺾을 때 회전 배율
+        [SerializeField, Min(0f)] private float _driftTurnMax = 1.4f;          // 안쪽으로 꺾을 때 회전 배율
+        [SerializeField, Range(0f, 30f)] private float _driftSlipAngle = 12f;  // 진행 방향과 차 앞 방향의 차이 (멀미 때문에 작게)
+        [SerializeField, Min(0f)] private float _driftSlipSpeed = 4f;          // 미끄러짐 각도가 따라가는 속도
+        [SerializeField, Min(0.1f)] private float _driftLevel1Time = 1f;       // 1단까지 걸리는 시간 (초)
+        [SerializeField, Min(0.1f)] private float _driftLevel2Time = 2.2f;     // 2단까지 걸리는 시간 (초)
+        [SerializeField, Min(0f)] private float _driftLevel1BoostPower = 0.2f;
+        [SerializeField, Min(0f)] private float _driftLevel1BoostDuration = 0.7f;
+        [SerializeField, Min(0f)] private float _driftLevel2BoostPower = 0.3f;
+        [SerializeField, Min(0f)] private float _driftLevel2BoostDuration = 1.3f;
+
         public float MaxSpeed => _maxSpeed;
         public float MaxReverseSpeed => _maxReverseSpeed;
         public float OffRoadSpeedFactor => _offRoadSpeedFactor;
@@ -56,5 +70,17 @@ namespace VRKart.Kart
         public float SpinOutDuration => _spinOutDuration;
         public float SpinOutSpeedFactor => _spinOutSpeedFactor;
         public float BoostAcceleration => _boostAcceleration;
+        public float DriftMinSpeed => _driftMinSpeed;
+        public float DriftSteerThreshold => _driftSteerThreshold;
+        public float DriftTurnMin => _driftTurnMin;
+        public float DriftTurnMax => _driftTurnMax;
+        public float DriftSlipAngle => _driftSlipAngle;
+        public float DriftSlipSpeed => _driftSlipSpeed;
+        public float DriftLevel1Time => _driftLevel1Time;
+        public float DriftLevel2Time => _driftLevel2Time;
+        public float DriftLevel1BoostPower => _driftLevel1BoostPower;
+        public float DriftLevel1BoostDuration => _driftLevel1BoostDuration;
+        public float DriftLevel2BoostPower => _driftLevel2BoostPower;
+        public float DriftLevel2BoostDuration => _driftLevel2BoostDuration;
     }
 }
