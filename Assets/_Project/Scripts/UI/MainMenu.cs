@@ -9,7 +9,7 @@ namespace VRKart.UI
     // 메인 메뉴: 시작 / 설정(볼륨) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
     public sealed class MainMenu : MonoBehaviour
     {
-        [SerializeField] private string _raceScene = SceneLoader.TrackTest;
+        [SerializeField] private string _raceScene = SceneLoader.TrackMain;
         [SerializeField] private GameObject _mainPanel;
         [SerializeField] private GameObject _settingsPanel;
         [SerializeField] private Button _startButton;
