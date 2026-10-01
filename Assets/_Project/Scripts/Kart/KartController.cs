@@ -38,12 +38,16 @@ namespace VRKart.Kart
         // 부스트가 걸릴 때마다 (미니 터보, 대시 패드, 아이템 공통). power, duration — 이펙트·사운드용
         public event Action<float, float> BoostStarted;
 
+        // 바나나·쉘에 맞았을 때 (피격 소리·진동용)
+        public event Action SpunOut;
+
         public float CurrentSpeed => _speed;
         public float MaxSpeed => _stats.MaxSpeed;
         public bool IsGrounded => _isGrounded;
         public bool IsOffRoad => _isOffRoad;
         public bool IsBoosting => _boostTimer > 0f;
         public bool IsSpinningOut => _spinOutTimer > 0f;
+        public bool IsControlEnabled => _controlEnabled;
         public bool IsDrifting => _driftDirection != 0;
         public int DriftDirection => _driftDirection;
         public KartStats Stats => _stats;
@@ -77,6 +81,7 @@ namespace VRKart.Kart
             _speed *= _stats.SpinOutSpeedFactor;
             _boostTimer = 0f;
             StopDrift();
+            SpunOut?.Invoke();
         }
 
         public void Respawn(Pose pose)
