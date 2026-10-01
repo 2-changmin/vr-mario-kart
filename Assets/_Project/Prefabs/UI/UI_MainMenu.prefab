@@ -1638,7 +1638,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0445d61377fed740a062194925c26dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VRKart.UI.MainMenu
-  _raceScene: Track_Test
+  _raceScene: Track_Main
   _mainPanel: {fileID: 7924585439199695833}
   _settingsPanel: {fileID: 7956809761856902517}
   _startButton: {fileID: 8606240108867929177}

@@ -18,6 +18,7 @@ Assets/
 │  │  ├─ Kart/                   # KartController, 드리프트, 부스트, 입력
 │  │  ├─ Items/                  # 아이템 박스, 아이템
 │  │  ├─ Race/                   # 체크포인트, 랩, RaceManager, 순위
+│  │  ├─ Track/                  # 트랙 중심선(TrackLayout), 도로 메시 생성, 에디터 버튼
 │  │  ├─ AI/                     # AI 입력, 웨이포인트
 │  │  ├─ UI/                     # 메뉴, HUD, 결과
 │  │  └─ Audio/                  # 사운드 매니저
@@ -173,6 +174,41 @@ namespace VRKart.Core
 - `AIPath`(웨이포인트 146개, 6m 간격)와 `AI 1`~`AI 3`(`Kart.prefab` + `RaceProgress` + `AIKartInput`, `StartPos_2~4`)이 있습니다. 아래 [AI 카트](#ai-카트-aikartinput) 절을 보세요.
 - 트랙 조각은 모두 `Static`이라 빌드 시 Static Batching으로 합쳐집니다 (NFR-01 드로우콜 예산).
 
+## 메인 트랙 (`Track_Main.unity`)
+
+`Track_Test`를 복사해서 트랙 부분만 바꾼 씬입니다. 레이스 오브젝트(`RaceManager`, `UI`, `Kart_Player`, `AI 1~3`, 출발선·출발 위치)는 `Track_Test`와 같은 구성·같은 위치입니다(결승선 = (0, 0, 60), +Z 방향).
+
+- 1랩 **약 1,031m**, 폭 10m 도로 + 갓길 3m + 벽(높이 1m). 평지(점프대 없음 — VR 멀미).
+- 코스: 메인 직선(약 210m) → 1번 코너(오른쪽 90°, R20) → S자 → 오른쪽 90° 두 번 → **헤어핀(왼쪽 180°, R12)** → 큰 스위퍼(오른쪽 180°, R54) → 뒷 직선(141m) → 마지막 코너(R30). 시계 방향.
+- AI 3랩 기록(자동 주행 테스트): 1위 약 185초(랩 61~63초), 4대 모두 완주, 갓길 주행 0%, 리스폰 0회.
+
+**구성**
+
+| 오브젝트 | 설명 |
+| --- | --- |
+| `Track` | **`TrackLayout`**(중심선) + **`TrackMeshBuilder`**(도로 메시). 아래 참고 |
+| `Track/* (generated)` | 도로(`Road`), 흰 가장자리 선, 커브 연석(빨강/흰), 갓길(`Grass`), 벽(`Wall`). **씬에 저장되지 않고** 켜질 때마다 만들어집니다(`HideFlags.DontSave`) |
+| `Props/Track_StartLine`, `Props/Track_StartGrid` | `Track_Test`와 같은 위치 |
+| `Environment/Ground_Grass` | 1200m x 1200m 바닥 (`Grass`) |
+| `Environment/Scenery` | Kenney 모델 장식 (약 830개, 모두 Static): 결승선 게이트, 관중석 10, 피트 6, 조명탑, 깃발, 코너 배너 탑, 광고판, 텐트, 나무 320, 바위, 덤불, 꽃, 풀, 통나무. 모두 벽에서 떨어져 있어 주행에 닿지 않습니다 |
+| `RaceTrack/Checkpoint_00~40` | 체크포인트 41개 (약 25m 간격, 버튼으로 배치) |
+| `AIPath/WP_000~171` | AI 웨이포인트 172개 (약 6m 간격, 버튼으로 배치) |
+| `KillZone` | 바닥 아래 1300m x 1300m |
+
+- 조명: 하늘 = Poly Haven HDRI(`Materials/Environment/Sky_PartlyCloudy.mat`), 환경광 = 3색(Trilight) 고정값, 거리 안개(150~550m, 먼 바닥 끝을 가림).
+
+**트랙 모양 바꾸기 (`TrackLayout`)**
+
+- `Pieces` 배열 = 출발점(이 오브젝트 위치·방향)부터 이어 붙이는 조각. `Turn` 0이면 길이 `Length`의 직선, 아니면 반지름 `Radius`로 `Turn`°만큼 도는 원호(+ 오른쪽, - 왼쪽).
+- **각도 합은 360°**, 끝점이 시작점으로 돌아와야 합니다. 1m 넘게 어긋나면 콘솔에 경고가 뜹니다(작은 오차는 전체에 나눠서 자동으로 닫음).
+- 값을 바꾸면 도로·벽이 바로 다시 만들어집니다. 그다음 `TrackLayout` 인스펙터 아래 버튼을 누릅니다:
+  - **`RaceTrack 체크포인트 다시 배치`**: `Finish Distance`(결승선)부터 간격대로 체크포인트를 새로 놓음 (0번 = 결승선)
+  - **`AIPath 웨이포인트 다시 배치`**: 중심선을 따라 웨이포인트를 새로 놓음
+- 결승선(`Finish Distance`)을 옮기면 출발선·출발 위치·카트 4대도 직접 옮겨야 합니다. 장식(`Scenery`)은 자동으로 따라오지 않으니 도로와 겹치는 것을 지웁니다.
+- 반지름은 도로 중심 기준입니다. **반지름 12m 미만은 피하세요**(안쪽 갓길·벽이 겹침). 평행한 구간은 중심선끼리 **24m 이상** 떨어뜨립니다(벽 바깥끼리 7m).
+- `TrackMeshBuilder`: 폭(도로 10, 연석 1, 갓길 3, 벽 두께 0.5·높이 1m)과 머티리얼(`Track_Road`, `Track_LineWhite`, `Track_Curb`, `Track_Runoff`, 벽 = `Track_Curb`). 레이어는 도로·선·연석 `Road`, 갓길 `Grass`, 벽 `Wall`.
+- 대시 패드·아이템 박스(#4·#5)가 나오면 `Track_Main`의 직선 구간(메인 직선, 뒷 직선)에 놓습니다.
+
 ## 체크포인트 & 랩 규칙
 
 `Scripts/Race/` (`VRKart.Race`)
@@ -288,7 +324,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 ## UI — 메인 메뉴 · 일시정지 (`UI_MainMenu`, `UI_PauseMenu`)
 
 - **`Scenes/MainMenu.unity`**: XR Origin, `EventSystem` + `XRUIInputModule`, 바닥, `UI_MainMenu`
-  - `MainMenu` — `시작` → `Race Scene`(지금은 `Track_Test`, 메인 트랙 #8이 나오면 `Track_Main`으로) / `설정` → 볼륨 슬라이더 / `종료`
+  - `MainMenu` — `시작` → `Race Scene`(`Track_Main`) / `설정` → 볼륨 슬라이더 / `종료`
   - 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 정면 1.5m에 놓입니다(`PlayerSpace`).
   - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
 - **설정 `GameSettings`** (`PlayerPrefs`): 지금은 `MasterVolume`(= `AudioListener.volume`)만 있습니다. 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
@@ -320,4 +356,4 @@ MainMenu ──시작──▶ Track_Main (Countdown → Racing → Finished) �
     └──────────────────────────메뉴──────────────────────────────┘
 ```
 
-- 지금은 `Track_Main`(#8) 대신 `Track_Test`로 연결돼 있습니다. `메뉴`는 결과 화면의 `메뉴` 버튼과 일시정지 메뉴의 `메뉴로` 버튼 두 곳에서 갑니다.
+- `메뉴`는 결과 화면의 `메뉴` 버튼과 일시정지 메뉴의 `메뉴로` 버튼 두 곳에서 갑니다.

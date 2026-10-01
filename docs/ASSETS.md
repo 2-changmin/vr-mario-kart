@@ -155,6 +155,9 @@ Assets/
 | --- | --- | --- | --- | --- | --- |
 | _(예시)_ Car Kit — kart 모델 2종 | https://kenney.nl/assets/car-kit | CC0 | `Assets/ThirdParty/Kenney/CarKit/` | Kart.prefab | 이창민 / #00 |
 | TMP Essential Resources — LiberationSans SDF 폰트, TMP 셰이더·설정 | Unity uGUI 패키지 내장 (`Packages/com.unity.ugui/Package Resources/TMP Essential Resources.unitypackage`, 다운로드 없음) | Unity Companion License, 폰트는 SIL OFL (`LiberationSans - OFL.txt` 동봉) | `Assets/TextMesh Pro/` (TMP 기본 위치) | 영문 대체 폰트(fallback), TMP 셰이더·설정 | 윤승희 / #12 결과 화면 PR |
+| Racing Kit 2.0 — 모델 18종 + 텍스처 2장 (`overheadLights`, `grandStand(Covered)`, `pitsGarage`, `pitsOffice`, `lightPostLarge`, `bannerTowerRed/Green`, `flagCheckers/Red/Green`, `billboard(Low)`, `tent(Long)`, `pylon`, `treeLarge/Small`, `Textures/checkers.png`·`tankco.png`) | https://kenney.nl/assets/racing-kit | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/RacingKit/` | `Track_Main` 장식 (결승선 게이트, 관중석, 피트, 조명탑, 깃발, 광고판, 텐트) | 윤승희 / #8 메인 트랙 PR |
+| Nature Kit 2.1 — 모델 17종 (`tree_default/oak/cone/pineDefaultA/fat`, `rock_largeA/C/D`, `rock_tallA`, `plant_bush(Detailed)`, `flower_red/yellow/purpleA`, `grass_large`, `stump_round`, `log`) | https://kenney.nl/assets/nature-kit | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/NatureKit/` | `Track_Main` 주변 자연물. Quaternius Ultimate Nature 대신 사용(구글 드라이브로만 받을 수 있고, Racing Kit과 스타일이 같음) | 윤승희 / #8 메인 트랙 PR |
+| Kloofendal 48d Partly Cloudy (Pure Sky) HDRI 2K | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | CC0 | `Assets/ThirdParty/PolyHaven/` (큐브맵으로 임포트) | `Track_Main` 하늘 (`Materials/Environment/Sky_PartlyCloudy.mat`) | 윤승희 / #8 메인 트랙 PR |
 | Pretendard **SemiBold** (v1.3.9, `public/static/Pretendard-SemiBold.otf` 1개만) | https://github.com/orioncactus/pretendard/releases/tag/v1.3.9 | SIL OFL 1.1 (`OFL.txt` 동봉) | 원본 `Assets/ThirdParty/Fonts/Pretendard/`, TMP 폰트 에셋 `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset` | TMP 기본 폰트 (한글 UI) | 윤승희 / #12 결과 화면 PR |
 
 ## 7. 크레딧
