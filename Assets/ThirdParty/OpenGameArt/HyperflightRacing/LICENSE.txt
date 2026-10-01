@@ -1,0 +1,5 @@
+Hyperflight Racing (track: "2012 november fakeAwake04 back to A minor")
+Author: cynicmusic (https://opengameart.org/users/cynicmusic)
+Source: https://opengameart.org/content/hyperflight-racing
+License: CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+File used: OpenGameArt's OGG Vorbis version of the original WAV (112 kbps, 60.7 s), renamed to Hyperflight_Racing.ogg
