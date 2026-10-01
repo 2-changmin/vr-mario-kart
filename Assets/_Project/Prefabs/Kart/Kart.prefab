@@ -807,6 +807,7 @@ GameObject:
   - component: {fileID: 5912221636590022470}
   - component: {fileID: 7315582995323782809}
   - component: {fileID: 4060219671392321929}
+  - component: {fileID: 7822364856780707583}
   m_Layer: 0
   m_Name: Kart
   m_TagString: Untagged
@@ -938,3 +939,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7ccd5c350f675c4ca30466abd6c10e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VRKart.Kart.DriftBoost
+--- !u!114 &7822364856780707583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7362193095829635447}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88a22815b23d9a488b2911a40e3f737, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRKart.Items.ItemHolder
+  _bananaPrefab: {fileID: 387589750906829993, guid: c3ef5ff807cca2543a603299e27c8248, type: 3}
+  _shellPrefab: {fileID: 5340313500603785356, guid: 2dcdd8ae28ee18241a6dbb4972ade261, type: 3}
+  _boosterPower: 0.4
+  _boosterDuration: 1.5
+  _bananaDropDistance: 1.6
+  _shellSpawnDistance: 1.8
