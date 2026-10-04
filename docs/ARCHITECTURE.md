@@ -129,12 +129,24 @@ namespace VRKart.Core
 
 ### 멀미 저감 (`ComfortSettings`, #6)
 
-- **`ComfortSettings`** (static, `VRKart.XR`): `VignetteEnabled`(기본 켬), `VignetteIntensity`(0~1, 기본 0.6), `HorizonLock`(기본 켬), `ShowPresetLabel`(기본 끔), `event Changed`, `Save()`(PlayerPrefs `settings.vignette.enabled`, `settings.vignette.intensity`, `settings.horizonLock`, `settings.comfort.showLabel`). 설정 UI(#12)는 setter만 부르고 화면을 닫을 때 `Save()`를 한 번 부릅니다.
-- **프리셋** (멀미 평가 #46): `ApplyPreset(ComfortPreset.Off | On)` — Off = 비네팅·수평 유지 모두 끔, On = 모두 켬. `CurrentPreset`은 둘 중 하나라도 켜져 있으면 On.
-- **`ComfortVignette`** (`Kart_Player` 루트): 메인 카메라 자식 `ComfortVignette` 반구(XRI 샘플 `VR/TunnelingVignette` 셰이더, `Materials/XR/Comfort_Vignette.mat`)의 조리개를 조절합니다. **직진 속도**(최고 속도의 15%부터)와 **회전 속도**(20~90°/s) 중 큰 쪽 × 강도 × 0.45만큼 닫힘. 0.3초에 닫히고 0.6초에 걷힘, 일시정지 중에는 걷힘.
+멀미는 몸(전정기관)이 느끼지 못하는 **회전·속도 변화** 때 시야 가장자리가 흐르면서 크게 옵니다. 그래서 **일정한 속도로 직진할 때는 가리지 않고**, 회전·가감속할 때만 주변 시야를 가립니다.
+
+- **`ComfortSettings`** (static, `VRKart.XR`): `VignetteEnabled`(기본 켬), `VignetteStyle`(기본 `WindowTint`), `VignetteIntensity`(0~1, 기본 0.6), `HorizonLock`(기본 켬), `ShowPresetLabel`(기본 끔), `event Changed`, `Save()`. PlayerPrefs 키 `settings.vignette.enabled`·`.style`·`.intensity`, `settings.horizonLock`, `settings.comfort.showLabel`. 설정 UI(#12)는 setter만 부르고 화면을 닫을 때 `Save()`를 한 번 부릅니다.
+- **가리는 방식 `ComfortVignetteStyle`**
+
+| 값 | 보이는 모습 | 영상·발표 화면 |
+| --- | --- | --- |
+| `WindowTint` (기본) | **앞유리 좌우 가장자리**(가운데는 투명한 그라데이션)와 **옆유리**가 짙어짐 — 차에 붙어 있어 고개를 돌려도 차와 함께 고정 | 선팅된 차 유리처럼 보여 자연스러움 |
+| `Soft` | 화면 가장자리를 반투명(최대 55%)하게 어둡게 | 은은한 비네트 |
+| `Black` | 화면 가장자리를 검게 (가장 강함) | 검은 원이 보임 |
+
+- **`ComfortVignette`** (`Kart_Player` 루트): 가리는 정도 = max(**회전 속도** 10~60°/s, **가감속** 1.5~6 m/s²) × 강도. 가감속은 물리 스텝마다 속도 변화로 재고 0.15초로 평활. 0.3초에 가려지고 0.6초에 걷힘, 일시정지 중에는 걷힘.
+  - `WindowTint`: `Cockpit/ComfortWindows`의 `WindshieldTint`(앞유리 면, `Textures/XR/Comfort_WindshieldEdge.png` 그라데이션) + `WindowTint_L/R`(옆유리) — URP Unlit 반투명(`Materials/XR/Comfort_WindshieldTint.mat`, `Comfort_WindowTint.mat`), 최대 불투명도 0.9 × 강도. [차량 비주얼 규칙](#차량-비주얼-규칙-40) 12대로 `Cockpit_Interior`와 형제.
+  - `Soft`·`Black`: 메인 카메라 자식 `ComfortVignette` 반구(XRI 샘플 `VR/TunnelingVignette` 셰이더, `Materials/XR/Comfort_Vignette.mat`).
+  - ⚠️ 옆유리는 운전석 눈에서 약 80° 옆이라 정면을 볼 때는 거의 시야 밖입니다. 주된 효과는 앞유리 가장자리입니다.
 - **`HorizonLock`** (`ViewPivot`): 켜져 있으면 카트의 앞뒤·좌우 기울기를 상쇄하고 방향(요)만 따라갑니다 → 경사·점프대에서 지평선이 기울지 않음. 조종석은 카트와 함께 기울어 보입니다. `ViewRecenter`는 `ViewPivot`의 위쪽을 기준으로 맞춥니다.
-- **`ComfortPresetToggle`** (`Kart_Player` 루트): **왼손 X 1.5초**(PC 운전 모드 `F2` 1.5초)로 프리셋 켬 ↔ 끔 + 저장. 전환 후 3초 동안 시야 위쪽에 `COMFORT ON/OFF` 표시(메인 카메라 자식 `ComfortLabel`). `ShowPresetLabel`이 켜져 있으면 계속 표시.
-- ⚠️ 비네팅이 강하면 대시보드 양옆 HUD 화면을 덮을 수 있습니다. 기본 강도는 실기기에서 확정합니다(#15, #46).
+- **프리셋** (멀미 평가 #46): `ApplyPreset(ComfortPreset.Off | On)` — Off = 시야 가림·수평 유지 모두 끔, On = 모두 켬. **`ComfortPresetToggle`**: **왼손 X 1.5초**(PC 운전 모드 `F2` 1.5초)로 켬 ↔ 끔 + 저장, 전환 후 3초 동안 시야 위쪽에 `COMFORT ON/OFF`(메인 카메라 자식 `ComfortLabel`). `ShowPresetLabel`이 켜져 있으면 계속 표시.
+- 강도 기본값(0.6)과 회전·가감속 기준값은 PC에서 정한 값입니다. **실기기에서 확정**합니다(#15, #46).
 
 ## 차량 비주얼 규칙 (#40)
 
