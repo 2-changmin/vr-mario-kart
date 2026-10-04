@@ -119,13 +119,34 @@ namespace VRKart.Core
 `Scripts/XR/` (`VRKart.XR`), `Scripts/Kart/PlayerKartInput.cs`, `Prefabs/Kart/`
 
 - `Kart.prefab` = 플레이어/AI 공용 카트(몸체 + Rigidbody + `KartController`, 아래 Kart 절). `Kart_Player.prefab` = 그 **변형(Variant)** 으로 조종석(`Cockpit`)과 `XR Origin (XR Rig)`, `PlayerKartInput`, `ViewRecenter`를 더한 것. AI 카트는 `Kart.prefab`을 씁니다.
-- XR Origin은 카트 루트의 자식이고, 카트 루트는 씬 **최상위**에 둡니다(UI `PlayerSpace` 약속). XR Rig의 `Locomotion`(이동·회전·텔레포트)과 `CharacterController`는 꺼 둡니다. 카트가 움직이고, 캡슐 콜라이더가 카트 물리와 겹치기 때문입니다.
+- XR Origin은 카트 루트 → **`ViewPivot`**(좌석 눈 위치, `HorizonLock`) 아래에 있고, 카트 루트는 씬 **최상위**에 둡니다(UI `PlayerSpace` 약속 — `Camera.main.transform.root`는 그대로 카트 루트). XR Rig의 `Locomotion`(이동·회전·텔레포트)과 `CharacterController`는 꺼 둡니다. 카트가 움직이고, 캡슐 콜라이더가 카트 물리와 겹치기 때문입니다.
 - `SteeringWheel` (`XRBaseInteractable`, Select Mode Multiple): Grip으로 한 손/두 손 잡기. 잡은 손이 핸들 축(`transform.forward`) 둘레로 돈 각도(두 손이면 평균)만큼 돌고 ±90°에서 멈춥니다. 놓으면 360°/초로 중앙 복귀. `Normalized` = -1(좌) ~ 1(우).
 - `PlayerKartInput : IKartInput`: 핸들을 잡고 있으면 핸들 각도, 아니면 왼손 스틱(데드존 0.15)으로 조향. 버튼은 [DEVICE.md](DEVICE.md) 2-4 표대로 코드에서 바인딩합니다(`PauseMenu`와 같은 방식). `UseItem`은 `WasPressedThisFrame`이라 `Update`에서 읽어야 합니다.
 - `ViewRecenter`: 시작 3프레임 뒤, 그리고 **왼손 Y**를 누를 때 머리를 `Cockpit/SeatEye`(눈 위치, forward = 카트 정면)로 옮깁니다. UI는 뜰 때의 머리 위치 기준이라 리센터해도 다시 배치되지 않습니다.
 - 차량 외형·실내(핸들 모양, 계기판, 대시보드)는 아래 [차량 비주얼 규칙](#차량-비주얼-규칙-40)을 따릅니다.
 - **PC 운전 모드** (에디터·PC 빌드만, `#if UNITY_EDITOR || UNITY_STANDALONE`): `Race/Testing/DesktopDriveController`가 실행 시 자동으로 생기고, 헤드셋이 없으면(`XRSettings.isDeviceActive == false`) `Core/DesktopDriveMode.Active`를 켜고 **XR Interaction Simulator를 끕니다**(R = 기기 리셋, Shift = 왼손 전환 등 키가 겹쳐서). `PlayerKartInput`은 이 모드일 때만 키보드를 함께 읽습니다: T 가속, Shift 브레이크(멈추면 0), R 후진(= 계속 브레이크), J/L 조향, Space 드리프트, E 아이템. P 일시정지, F1 모드 전환. 키 표는 README.
 - 테스트 씬: `Scenes/Sandbox/Changmin_Steering.unity`. XR Interaction Simulator에서 `]`(오른손 선택) → `G`(잡기) + `Q`/`E`(위아래 이동)로 핸들 회전, `Shift+2` = 왼손 Y(리센터).
+
+### 멀미 저감 (`ComfortSettings`, #6)
+
+멀미는 몸(전정기관)이 느끼지 못하는 **회전·속도 변화** 때 시야 가장자리가 흐르면서 크게 옵니다. 그래서 **일정한 속도로 직진할 때는 가리지 않고**, 회전·가감속할 때만 주변 시야를 가립니다.
+
+- **`ComfortSettings`** (static, `VRKart.XR`): `VignetteEnabled`(기본 켬), `VignetteStyle`(기본 `WindowTint`), `VignetteIntensity`(0~1, 기본 0.6), `HorizonLock`(기본 켬), `ShowPresetLabel`(기본 끔), `event Changed`, `Save()`. PlayerPrefs 키 `settings.vignette.enabled`·`.style`·`.intensity`, `settings.horizonLock`, `settings.comfort.showLabel`. 설정 UI(#12)는 setter만 부르고 화면을 닫을 때 `Save()`를 한 번 부릅니다.
+- **가리는 방식 `ComfortVignetteStyle`**
+
+| 값 | 보이는 모습 | 영상·발표 화면 |
+| --- | --- | --- |
+| `WindowTint` (기본) | **앞유리 좌우 가장자리**(가운데는 투명한 그라데이션)와 **옆유리**가 짙어짐 — 차에 붙어 있어 고개를 돌려도 차와 함께 고정 | 선팅된 차 유리처럼 보여 자연스러움 |
+| `Soft` | 화면 가장자리를 반투명(최대 55%)하게 어둡게 | 은은한 비네트 |
+| `Black` | 화면 가장자리를 검게 (가장 강함) | 검은 원이 보임 |
+
+- **`ComfortVignette`** (`Kart_Player` 루트): 가리는 정도 = max(**회전 속도** 10~60°/s, **가감속** 1.5~6 m/s²) × 강도. 가감속은 물리 스텝마다 속도 변화로 재고 0.15초로 평활. 0.3초에 가려지고 0.6초에 걷힘, 일시정지 중에는 걷힘.
+  - `WindowTint`: `Cockpit/ComfortWindows`의 `WindshieldTint`(앞유리 면, `Textures/XR/Comfort_WindshieldEdge.png` 그라데이션) + `WindowTint_L/R`(옆유리) — URP Unlit 반투명(`Materials/XR/Comfort_WindshieldTint.mat`, `Comfort_WindowTint.mat`), 최대 불투명도 0.9 × 강도. [차량 비주얼 규칙](#차량-비주얼-규칙-40) 12대로 `Cockpit_Interior`와 형제.
+  - `Soft`·`Black`: 메인 카메라 자식 `ComfortVignette` 반구(XRI 샘플 `VR/TunnelingVignette` 셰이더, `Materials/XR/Comfort_Vignette.mat`).
+  - ⚠️ 옆유리는 운전석 눈에서 약 80° 옆이라 정면을 볼 때는 거의 시야 밖입니다. 주된 효과는 앞유리 가장자리입니다.
+- **`HorizonLock`** (`ViewPivot`): 켜져 있으면 카트의 앞뒤·좌우 기울기를 상쇄하고 방향(요)만 따라갑니다 → 경사·점프대에서 지평선이 기울지 않음. 조종석은 카트와 함께 기울어 보입니다. `ViewRecenter`는 `ViewPivot`의 위쪽을 기준으로 맞춥니다.
+- **프리셋** (멀미 평가 #46): `ApplyPreset(ComfortPreset.Off | On)` — Off = 시야 가림·수평 유지 모두 끔, On = 모두 켬. **`ComfortPresetToggle`**: **왼손 X 1.5초**(PC 운전 모드 `F2` 1.5초)로 켬 ↔ 끔 + 저장, 전환 후 3초 동안 시야 위쪽에 `COMFORT ON/OFF`(메인 카메라 자식 `ComfortLabel`). `ShowPresetLabel`이 켜져 있으면 계속 표시.
+- 강도 기본값(0.6)과 회전·가감속 기준값은 PC에서 정한 값입니다. **실기기에서 확정**합니다(#15, #46).
 
 ## 차량 비주얼 규칙 (#40)
 

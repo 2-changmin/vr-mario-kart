@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 namespace VRKart.XR
 {
     // 시점 리센터 (FR-XR-05). 머리(카메라)를 좌석 눈 위치(_seatEye)로 옮기고, 정면을 카트 정면에 맞춘다.
-    // 시작 직후 한 번, 그리고 왼손 Y 버튼을 누를 때마다 실행한다. XR Origin은 카트의 자식이어야 한다.
+    // 시작 직후 한 번, 그리고 왼손 Y 버튼을 누를 때마다 실행한다. XR Origin은 카트 루트 아래 ViewPivot(HorizonLock)의 자식이다.
     public sealed class ViewRecenter : MonoBehaviour
     {
         [SerializeField] private XROrigin _origin;
@@ -46,7 +46,10 @@ namespace VRKart.XR
 
         public void Recenter()
         {
-            _origin.MatchOriginUpCameraForward(_seatEye.up, _seatEye.forward);
+            // 위쪽 기준 = XR Origin의 부모(ViewPivot). 수평 유지(HorizonLock)가 켜져 있으면 월드 위쪽, 꺼져 있으면 카트 위쪽
+            var parent = _origin.transform.parent;
+            var up = parent != null ? parent.up : _seatEye.up;
+            _origin.MatchOriginUpCameraForward(up, Vector3.ProjectOnPlane(_seatEye.forward, up).normalized);
             _origin.MoveCameraToWorldLocation(_seatEye.position);
         }
 
