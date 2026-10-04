@@ -5,7 +5,11 @@ namespace VRKart.XR
 {
     public enum ComfortPreset { Off, On }
 
-    // 멀미 저감 설정 (FR-XR-06, 07). 설정 UI(#12)는 setter만 부르고 화면을 닫을 때 Save()를 한 번 부른다.
+    // 시야를 가리는 방식. WindowTint = 차 옆유리가 짙어짐(기본, 영상에서도 자연스러움),
+    // Soft = 화면 가장자리를 반투명하게 어둡게, Black = 화면 가장자리를 검게(가장 강함)
+    public enum ComfortVignetteStyle { WindowTint, Soft, Black }
+
+    // 멀미 저감 설정 (FR-XR-06, 07). 회전·가감속할 때 주변 시야를 가린다(VignetteStyle 방식으로). 설정 UI(#12)는 setter만 부르고 화면을 닫을 때 Save()를 한 번 부른다.
     // 값이 바뀌면 Changed → 비네팅·수평 유지가 바로 반영된다. 저장 키는 GameSettings와 같은 "settings.…" 형식.
     public static class ComfortSettings
     {
@@ -15,12 +19,14 @@ namespace VRKart.XR
         private const string KeyIntensity = "settings.vignette.intensity";
         private const string KeyHorizonLock = "settings.horizonLock";
         private const string KeyShowLabel = "settings.comfort.showLabel";
+        private const string KeyStyle = "settings.vignette.style";
 
         private static bool _loaded;
         private static bool _vignetteEnabled;
         private static float _vignetteIntensity;
         private static bool _horizonLock;
         private static bool _showPresetLabel;
+        private static ComfortVignetteStyle _vignetteStyle;
 
         public static event Action Changed;
 
@@ -30,7 +36,13 @@ namespace VRKart.XR
             set { Load(); if (_vignetteEnabled == value) return; _vignetteEnabled = value; Changed?.Invoke(); }
         }
 
-        // 0 ~ 1. 최대로 움직일 때 시야가 얼마나 좁아지는지
+        public static ComfortVignetteStyle VignetteStyle
+        {
+            get { Load(); return _vignetteStyle; }
+            set { Load(); if (_vignetteStyle == value) return; _vignetteStyle = value; Changed?.Invoke(); }
+        }
+
+        // 0 ~ 1. 가장 크게 움직일 때 얼마나 가리는지
         public static float VignetteIntensity
         {
             get { Load(); return _vignetteIntensity; }
@@ -72,6 +84,7 @@ namespace VRKart.XR
             PlayerPrefs.SetFloat(KeyIntensity, _vignetteIntensity);
             PlayerPrefs.SetInt(KeyHorizonLock, _horizonLock ? 1 : 0);
             PlayerPrefs.SetInt(KeyShowLabel, _showPresetLabel ? 1 : 0);
+            PlayerPrefs.SetInt(KeyStyle, (int)_vignetteStyle);
             PlayerPrefs.Save();
         }
 
@@ -83,6 +96,8 @@ namespace VRKart.XR
             _vignetteIntensity = Mathf.Clamp01(PlayerPrefs.GetFloat(KeyIntensity, DefaultVignetteIntensity));
             _horizonLock = PlayerPrefs.GetInt(KeyHorizonLock, 1) == 1;
             _showPresetLabel = PlayerPrefs.GetInt(KeyShowLabel, 0) == 1;
+            int style = PlayerPrefs.GetInt(KeyStyle, (int)ComfortVignetteStyle.WindowTint);
+            _vignetteStyle = System.Enum.IsDefined(typeof(ComfortVignetteStyle), style) ? (ComfortVignetteStyle)style : ComfortVignetteStyle.WindowTint;
         }
 
         // 도메인 리로드 없이 Play할 때 이전 값·구독이 남지 않게
