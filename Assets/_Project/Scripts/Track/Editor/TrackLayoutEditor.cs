@@ -19,6 +19,15 @@ namespace VRKart.Track.Editor
             DrawDefaultInspector();
             var layout = (TrackLayout)target;
             EditorGUILayout.HelpBox($"한 바퀴 {layout.Length:F0}m", MessageType.None);
+            if (layout.MaxGrade > 0.001f)
+            {
+                // 기준(#50): 경사 10% 이하, 꼭대기 곡률 반지름 80m 이상(20m/s, 부스트 27m/s에서 뜨지 않게)
+                bool steep = layout.MaxGrade > 0.10f;
+                bool sharpCrest = layout.MinCrestRadius < 80f;
+                string crest = float.IsInfinity(layout.MinCrestRadius) ? "없음" : $"{layout.MinCrestRadius:F0}m";
+                EditorGUILayout.HelpBox($"최대 경사 {layout.MaxGrade * 100f:F1}% (기준 10% 이하), 언덕 꼭대기 반지름 최소 {crest} (기준 80m 이상)",
+                    steep || sharpCrest ? MessageType.Warning : MessageType.Info);
+            }
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("레이스 오브젝트 맞추기", EditorStyles.boldLabel);
