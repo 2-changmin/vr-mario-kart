@@ -33,6 +33,11 @@ namespace VRKart.Track
         [SerializeField, Min(0.5f)] private float _embankmentRatio = 2f;
         [Tooltip("끄면 흙 둑을 만들지 않는다 (TrackTerrain이 주변 지형을 따로 만드는 트랙)")]
         [SerializeField] private bool _buildEmbankments = true;
+        [Header("주변과 자연스럽게 (#48)")]
+        [Tooltip("끄면 벽은 콜라이더만 남고 보이지 않는다(투명 벽). 주변 지형과 이어지는 트랙용")]
+        [SerializeField] private bool _wallsVisible = true;
+        [Tooltip("끄면 커브 가장자리의 빨강/흰 연석을 만들지 않는다")]
+        [SerializeField] private bool _buildCurbs = true;
         [Header("머티리얼")]
         [SerializeField] private Material _roadMaterial;
         [SerializeField] private Material _lineMaterial;
@@ -46,6 +51,8 @@ namespace VRKart.Track
 
         // 도로 중심에서 벽 바깥면까지 (체크포인트 폭, 장식 배치 거리의 기준)
         public float HalfWidth => _roadWidth * 0.5f + _shoulderWidth + _wallThickness;
+        // 도로 중심에서 갓길 바깥 가장자리까지 (TrackTerrain이 여기서부터 지형으로 잇는다)
+        public float ShoulderEdge => _roadWidth * 0.5f + _shoulderWidth;
 
         private void OnEnable()
         {
@@ -103,7 +110,7 @@ namespace VRKart.Track
             Func<int, bool> curved = i => samples[i].Curvature != 0f || samples[i + 1].Curvature != 0f;
             curbs.Strip(samples, -half, -half + _curbWidth, 0.02f, _stripeLength * 2f, curved);
             curbs.Strip(samples, half - _curbWidth, half, 0.02f, _stripeLength * 2f, curved);
-            Create("Curbs", RoadLayer, curbs, _curbMaterial, collider: false, shadows: false);
+            if (_buildCurbs) Create("Curbs", RoadLayer, curbs, _curbMaterial, collider: false, shadows: false);
 
             var shoulders = new MeshData();
             shoulders.Strip(samples, -shoulderEnd, -half, 0f, _roadWidth, _ => true);
@@ -113,7 +120,7 @@ namespace VRKart.Track
             var walls = new MeshData();
             walls.Wall(samples, -wallEnd, -shoulderEnd, WallBottom, _wallHeight, _groundHeight, _stripeLength * 2f);
             walls.Wall(samples, shoulderEnd, wallEnd, WallBottom, _wallHeight, _groundHeight, _stripeLength * 2f);
-            Create("Walls", WallLayer, walls, _wallMaterial, collider: true, shadows: true);
+            Create("Walls", WallLayer, walls, _wallMaterial, collider: true, shadows: true, visible: _wallsVisible);
 
             // 도로가 바닥보다 높은 구간: 벽 바깥에서 바닥까지 흙 둑 (보이기만, 콜라이더 없음)
             if (!_buildEmbankments) return;
@@ -123,7 +130,7 @@ namespace VRKart.Track
             if (banks.HasGeometry) Create("Embankments", GrassLayer, banks, _embankmentMaterial != null ? _embankmentMaterial : _shoulderMaterial, collider: false, shadows: false);
         }
 
-        private void Create(string name, int layer, MeshData data, Material material, bool collider, bool shadows)
+        private void Create(string name, int layer, MeshData data, Material material, bool collider, bool shadows, bool visible = true)
         {
             var mesh = new Mesh { name = $"{name} (generated)", hideFlags = HideFlags.DontSave };
             data.Apply(mesh);
@@ -131,9 +138,12 @@ namespace VRKart.Track
             go.transform.SetParent(transform, false);
             go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);   // 샘플이 월드 좌표라서
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var meshRenderer = go.AddComponent<MeshRenderer>();
-            meshRenderer.sharedMaterial = material;
-            meshRenderer.shadowCastingMode = shadows ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+            if (visible)
+            {
+                var meshRenderer = go.AddComponent<MeshRenderer>();
+                meshRenderer.sharedMaterial = material;
+                meshRenderer.shadowCastingMode = shadows ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
             if (collider) go.AddComponent<MeshCollider>().sharedMesh = mesh;
             _generated.Add(go);
             _generated.Add(mesh);
