@@ -360,15 +360,16 @@ namespace VRKart.Core
 | 오브젝트 | 내용 |
 | --- | --- |
 | `Track` | `TrackLayout`(회전 180° = 남쪽 출발, 결승선 35m, Height Smoothing 8m) + `TrackMeshBuilder`(흙 둑 끔, Ground Height -7) + **`TrackTerrain`** |
-| `Campus` | 건물 상자 10개(인문과학대학·소프트웨어대학·예술체육대학2관·생명자원과학대학은 이름 간판, 나머지는 캠퍼스 건물·주변 아파트·학교). 위치는 지도 아이콘 좌표, 트랙에 너무 가까우면 바깥으로 밀어냄. 로고는 쓰지 않음 |
-| `Campus/MainGatePlaza` | **정문 광장**(정문 사진 참고): 석재 옹벽 위 계단식 테라스 3단 + 화단 + 가운데 계단, 흰 기둥 조형물(세로 글씨 `동아대학교`), 왼쪽 뒤 흰 고층 타워(세로 창문 줄, 저층부), 오른쪽 파란 창문 띠 건물, 테라스 나무. 입구 오르막(230~330m)과 복귀 구간 사이 안쪽에서 트랙·건물과 가장 먼 자리(여유 32m)에 놓고 입구 도로 쪽을 바라봄. 머티리얼 `Campus_Stone·White·Hedge·GlassBlue` |
+| `Campus` | 건물 11개. 이름 간판: 인문과학대학(**흰 고층 타워**, 세로 창문 줄), 예술체육대학1관(**흰 건물 + 파란 창문 띠**), 소프트웨어대학·예술체육대학2관·생명자원과학대학. 나머지는 캠퍼스 건물·주변 아파트·학교. 위치는 지도 아이콘 좌표, 트랙·정문에 너무 가까우면 바깥으로 밀어냄. 로고는 쓰지 않음 |
+| `Campus/MainGate` | **정문**(로드뷰·정문 사진 참고): 복귀 구간이 출발 직선으로 꺾이는 코너 바깥(1,013m 옆). 석축 옹벽(폭 36m, 높이 +6.4m) 가운데 넓은 계단 22단, 계단 왼쪽 콘크리트 기둥(11m), 옹벽 위 산울타리·나무, 오른쪽 옹벽의 주차장 입구, 계단 위 `동아대학교 승학캠퍼스` 현수막, 위 광장의 흰 기둥 조형물(세로 `동아대학교`) |
+| `Campus/GateStreet` | **정문 앞 도로**(953m ~ 다음 바퀴 25m): 빨강/흰 연석을 도로색으로 덮고, 가장자리 노란 선, 갓길 = 보도블록, 벽 = 석재 마감, 999m에 횡단보도. 보이기만 하는 상자를 머티리얼별로 합친 메시 5개(콜라이더 없음 → 주행·갓길 감속은 그대로) |
 | `Environment/Scenery/Trees` | Kenney 나무 350그루(메인 트랙 나무의 종류·크기 그대로) |
 | `Props/ItemBoxes` | 3줄: 141m(캠퍼스 밖), 464m(중앙 광장), 877m(내리막) |
 | `Props/DashPads` | 325m·560m(오르막 가운데), 978m(내리막 좌우 2개) — 경사에 맞춰 기울임 |
 | `Environment/Ground_Grass` | y -7.55, 1,370m 사방 (지형 가장자리 아래) / `KillZone` y -25 |
 
 - **`TrackTerrain`**(새 컴포넌트, `[ExecuteAlways]`, 씬에 저장 안 함): 트랙 둘레 80m까지 4m 격자 지형(버텍스 약 1.4만, Grass 레이어, 메시 콜라이더). 격자 점 높이 = 트랙 높이 거리 가중 평균, 도로·갓길 아래는 도로보다 0.4m 낮게, 벽 바깥은 1m당 0.5m까지만 벗어남, 가장자리 50m에서 `Edge Height`(-7m)로 내려감. 높낮이가 큰 트랙에서 흙 둑(`Embankments`) 대신 씁니다. `TrackMeshBuilder`에 `Build Embankments` 끄기 옵션을 추가했습니다.
-- 머티리얼 `Materials/Environment/Campus_Building·Campus_Window·Campus_Sign`(URP Lit).
+- 머티리얼 `Materials/Environment/Campus_*`(URP Lit): Building·Window·Sign·White·GlassBlue·Stone·Hedge·Granite·Concrete·Paving·PaintYellow.
 - **자동 주행 테스트**(4대 모두 AI, 3랩): 전원 완주(AI 1 185.3s ~ AI 3 214.6s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
 - 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).
 
