@@ -38,6 +38,7 @@ namespace VRKart.UI
         private int _shownSpeed = -1;
         private int _shownTenths = -1;
         private bool _docked;
+        private RaceMinimap _minimap;
         private ItemHolder _playerItems;
         private float _itemPop;
 
@@ -47,6 +48,7 @@ namespace VRKart.UI
         {
             PlayerSpace.PlaceInFront(transform, 0f, 0f);
             DockToCockpit();
+            EnsureMinimap();
             SetVisible(true);
             Refresh(true);
         }
@@ -70,9 +72,26 @@ namespace VRKart.UI
             _docked = true;
         }
 
+        // 미니맵 (#48): 조종석이 있으면 앞유리 오른쪽 위, 없으면 HUD 안 오른쪽 위
+        private void EnsureMinimap()
+        {
+            if (_minimap != null) return;
+            var anchors = transform.root != transform ? transform.root.GetComponentInChildren<CockpitHudAnchors>() : null;
+            if (anchors != null && anchors.Map != null)
+            {
+                _minimap = RaceMinimap.Create(anchors.Map, _raceManager);
+            }
+            else
+            {
+                _minimap = RaceMinimap.Create(_content.transform, _raceManager, 0.0016f);
+                _minimap.transform.localPosition = new Vector3(0.75f, 0.42f, 2f);
+            }
+        }
+
         private void SetVisible(bool visible)
         {
             _content.SetActive(visible);
+            if (_minimap != null && _minimap.transform.parent != _content.transform) _minimap.gameObject.SetActive(visible);
             if (!_docked) return;
             if (_dashLeft != null) _dashLeft.gameObject.SetActive(visible);
             if (_dashRight != null) _dashRight.gameObject.SetActive(visible);
