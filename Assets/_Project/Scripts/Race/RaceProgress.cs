@@ -94,7 +94,7 @@ namespace VRKart.Race
             float speed = velocity.magnitude;
             bool movingBackward = false;
             if (speed >= _wrongWayMinSpeed)
-                movingBackward = Vector3.Dot(velocity / speed, _track.DirectionAt(position)) < -0.5f;
+                movingBackward = Vector3.Dot(velocity / speed, _track.DirectionAt(position, _lap.NextIndex)) < -0.5f;
 
             _wrongWayTimer = movingBackward ? _wrongWayTimer + elapsed : 0f;
             if (!_isWrongWay && _wrongWayTimer >= _wrongWayDelay) SetWrongWay(true);

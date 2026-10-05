@@ -8,7 +8,7 @@ using VRKart.XR;
 
 namespace VRKart.UI
 {
-    // 메인 메뉴: 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
+    // 메인 메뉴: 트랙 선택(서킷 / 동아대 캠퍼스, #48) / 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
     public sealed class MainMenu : MonoBehaviour
     {
         [SerializeField] private string _raceScene = SceneLoader.TrackMain;
@@ -25,6 +25,10 @@ namespace VRKart.UI
         [SerializeField] private Slider _sfxSlider;
         [SerializeField] private TMP_Text _sfxValueText;
 
+        [Header("트랙 선택 (#48)")]
+        [SerializeField] private Button _trackButton;
+        [SerializeField] private TMP_Text _trackText;
+
         [Header("멀미 저감 (ComfortSettings, #6)")]
         [SerializeField] private Button _comfortButton;
         [SerializeField] private TMP_Text _comfortText;
@@ -37,12 +41,21 @@ namespace VRKart.UI
         [SerializeField, Min(0.5f)] private float _distance = 1.5f;
         [SerializeField] private float _heightOffset = -0.1f;
 
+        // 고를 수 있는 트랙 (씬 이름, 메뉴 표시 이름). 메뉴로 돌아와도 마지막 선택을 기억한다.
+        private static readonly (string Scene, string Label)[] Tracks =
+        {
+            (SceneLoader.TrackMain, "서킷"),
+            (SceneLoader.TrackCampus, "동아대 캠퍼스"),
+        };
+        private static int s_trackIndex;
+
         public bool IsSettingsOpen => _settingsPanel.activeSelf;
 
         public void ShowMain()
         {
             _mainPanel.SetActive(true);
             _settingsPanel.SetActive(false);
+            UpdateTrackText();
         }
 
         public void ShowSettings()
@@ -67,6 +80,7 @@ namespace VRKart.UI
         private void OnEnable()
         {
             _startButton.onClick.AddListener(HandleStart);
+            if (_trackButton != null) _trackButton.onClick.AddListener(NextTrack);
             _settingsButton.onClick.AddListener(ShowSettings);
             _quitButton.onClick.AddListener(HandleQuit);
             _backButton.onClick.AddListener(HandleBack);
@@ -81,6 +95,7 @@ namespace VRKart.UI
         private void OnDisable()
         {
             _startButton.onClick.RemoveListener(HandleStart);
+            if (_trackButton != null) _trackButton.onClick.RemoveListener(NextTrack);
             _settingsButton.onClick.RemoveListener(ShowSettings);
             _quitButton.onClick.RemoveListener(HandleQuit);
             _backButton.onClick.RemoveListener(HandleBack);
@@ -92,7 +107,19 @@ namespace VRKart.UI
             if (_horizonButton != null) _horizonButton.onClick.RemoveListener(ToggleHorizon);
         }
 
-        private void HandleStart() => SceneLoader.Load(_raceScene);
+        // 트랙 선택 버튼이 없으면 Race Scene 그대로
+        private void HandleStart() => SceneLoader.Load(_trackButton != null ? Tracks[s_trackIndex].Scene : _raceScene);
+
+        private void NextTrack()
+        {
+            s_trackIndex = (s_trackIndex + 1) % Tracks.Length;
+            UpdateTrackText();
+        }
+
+        private void UpdateTrackText()
+        {
+            if (_trackText != null) _trackText.text = "트랙: " + Tracks[s_trackIndex].Label;
+        }
 
         private void HandleBack()
         {
