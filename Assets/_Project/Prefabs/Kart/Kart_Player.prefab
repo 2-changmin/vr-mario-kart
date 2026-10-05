@@ -132,6 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7675939113791241582}
   - component: {fileID: 6675623602587314046}
+  - component: {fileID: 6630679087309824108}
   m_Layer: 0
   m_Name: Audio
   m_TagString: Untagged
@@ -176,6 +177,31 @@ MonoBehaviour:
   _spatialBlend: 1
   _minDistance: 2
   _maxDistance: 60
+--- !u!114 &6630679087309824108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759612503989231670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8917ccb23b5437a4e9af7e05c0274eca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRKart.Audio.KartSfx
+  _skidLoop: {fileID: 8300000, guid: 69baab779d386bf448981a158ce4ba86, type: 3}
+  _skidVolume: 0.45
+  _boostLevelUp:
+  - {fileID: 8300000, guid: 737df5c596cf8b348a06c51e70860d71, type: 3}
+  - {fileID: 8300000, guid: 061403b1796baba478334dfff60d53c4, type: 3}
+  _boost: {fileID: 8300000, guid: 38f98199bb1ca384faf9e3ebaa063e41, type: 3}
+  _itemPickup: {fileID: 8300000, guid: d46439f06ca8d2e43920c9912d16e6e4, type: 3}
+  _bananaDrop: {fileID: 8300000, guid: 5a8bb63c97881f649afd5af29c56ad35, type: 3}
+  _shellLaunch: {fileID: 8300000, guid: 8214d14941c69374baa5027abe517955, type: 3}
+  _spinOut: {fileID: 8300000, guid: b3da451707fdf534f859e44eaccbd149, type: 3}
+  _volume: 0.8
+  _spatialBlend: 0.5
+  _haptics: 1
 --- !u!1 &843552375895985348
 GameObject:
   m_ObjectHideFlags: 0
