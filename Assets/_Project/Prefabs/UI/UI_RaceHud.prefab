@@ -563,6 +563,11 @@ MonoBehaviour:
   _rankText: {fileID: 9133238199640264214}
   _speedText: {fileID: 122975553864342191}
   _timeText: {fileID: 8201323341309905006}
+  _itemIcon: {fileID: 2926685429446672422}
+  _boosterIcon: {fileID: 21300000, guid: 7484a0ca6f5e5714dba2773abd9aa52f, type: 3}
+  _bananaIcon: {fileID: 21300000, guid: 54beac2aa8bc1d8458fe2af0547f6aba, type: 3}
+  _shellIcon: {fileID: 21300000, guid: 8be2c3693db22f94fb1eb732f29ce39d, type: 3}
+  _itemPopScale: 1.35
 --- !u!114 &6871777591436154112
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1197,7 +1202,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 0}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using VRKart.Core;
+using VRKart.Items;
 using VRKart.Race;
 
 namespace VRKart.AI
@@ -31,6 +33,15 @@ namespace VRKart.AI
         [SerializeField, Min(0.1f)] private float _reverseTime = 1.2f;
         [SerializeField, Min(0)] private int _reverseTriesBeforeRespawn = 2;
 
+        [Header("아이템 (#5)")]
+        [Tooltip("아이템을 받은 뒤 이 시간(초) 사이 무작위로 기다렸다가 쓸 기회를 본다")]
+        [SerializeField] private Vector2 _itemThinkTime = new Vector2(1f, 3f);
+        [SerializeField, Min(1f)] private float _itemGiveUpTime = 8f;      // 기회가 안 와도 이 시간이 지나면 그냥 쓴다
+        [SerializeField, Min(5f)] private float _shellRange = 40f;         // 앞 카트가 이 거리·각도 안이면 쉘
+        [SerializeField, Range(1f, 30f)] private float _shellAngle = 8f;
+        [SerializeField, Min(2f)] private float _bananaRange = 20f;        // 뒤 카트가 이 거리 안이면 바나나
+        [SerializeField, Range(5f, 90f)] private float _boosterMaxTurn = 15f; // 앞 커브가 이 각도 이하(직선)면 부스터
+
         private IKart _kart;
         private RaceProgress _progress;
         private RaceManager _raceManager;
@@ -40,12 +51,18 @@ namespace VRKart.AI
         private float _reverseTimer;
         private float _reverseSteer;
         private int _reverseTries;
+        private ItemHolder _items;
+        private readonly List<Transform> _others = new List<Transform>();
+        private float _itemHeldTime;
+        private float _itemThinkDelay;
+        private int _useItemFrame = -10;
 
         public float Throttle { get; private set; }
         public float Brake { get; private set; }
         public float Steer { get; private set; }
         public bool Drift => false;
-        public bool UseItem => false;
+        // 한 번 누른 것처럼 두 프레임 동안 true (ItemHolder와 Update 순서가 정해져 있지 않아서). 쓰면 아이템이 None이 되므로 두 번 쓰이지 않음
+        public bool UseItem => Time.frameCount - _useItemFrame <= 1;
 
         private void Awake()
         {
@@ -54,11 +71,20 @@ namespace VRKart.AI
             _raceManager = FindAnyObjectByType<RaceManager>();
             if (_path == null) _path = FindAnyObjectByType<WaypointPath>();
             _wobbleSeed = Random.value * 100f;
+            _items = GetComponent<ItemHolder>();
+            if (_items != null) _items.ItemChanged += HandleItemChanged;
+        }
+
+        private void OnDestroy()
+        {
+            if (_items != null) _items.ItemChanged -= HandleItemChanged;
         }
 
         private void Start()
         {
             if (_path != null) _segment = _path.ClosestSegment(transform.position);
+            foreach (var other in FindObjectsByType<RaceProgress>(FindObjectsSortMode.None))
+                if (other.gameObject != gameObject) _others.Add(other.transform);
         }
 
         private void Update()
@@ -109,6 +135,45 @@ namespace VRKart.AI
             }
 
             UpdateStuck(speed, desiredSteer, dt);
+            UpdateItem(corner, dt);
+        }
+
+        private void HandleItemChanged(ItemType item)
+        {
+            _itemHeldTime = 0f;
+            _itemThinkDelay = Random.Range(_itemThinkTime.x, _itemThinkTime.y);
+        }
+
+        // 들고 있는 아이템을 쓸 기회인지 판단: 부스터 = 직선, 쉘 = 바로 앞에 카트, 바나나 = 바로 뒤에 카트. 오래 들고 있으면 그냥 쓴다.
+        private void UpdateItem(float upcomingTurn, float dt)
+        {
+            if (_items == null || _items.CurrentItem == ItemType.None) return;
+            bool racing = _raceManager != null && _raceManager.State == RaceState.Racing && !_raceManager.IsPaused;
+            if (!racing) return;
+            _itemHeldTime += dt;
+            if (_itemHeldTime < _itemThinkDelay) return;
+
+            bool use = _itemHeldTime >= _itemGiveUpTime || _items.CurrentItem switch
+            {
+                ItemType.Booster => upcomingTurn <= _boosterMaxTurn,
+                ItemType.Shell => KartInCone(transform.forward, _shellRange, _shellAngle),
+                ItemType.Banana => KartInCone(-transform.forward, _bananaRange, 35f),
+                _ => false,
+            };
+            if (use) _useItemFrame = Time.frameCount;
+        }
+
+        private bool KartInCone(Vector3 direction, float range, float angle)
+        {
+            foreach (Transform other in _others)
+            {
+                if (other == null) continue;
+                Vector3 to = other.position - transform.position;
+                to.y = 0f;
+                if (to.sqrMagnitude > range * range || to.sqrMagnitude < 1f) continue;
+                if (Vector3.Angle(direction, to) <= angle) return true;
+            }
+            return false;
         }
 
         // 현재 구간을 앞으로 갱신하고 구간 위 비율 t를 돌려준다. 경로에서 많이 벗어났으면(리스폰 등) 가장 가까운 구간을 다시 찾는다.

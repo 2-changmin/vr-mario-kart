@@ -21,7 +21,8 @@ Assets/
 │  │  ├─ Track/                  # 트랙 중심선(TrackLayout), 도로 메시 생성, 에디터 버튼
 │  │  ├─ AI/                     # AI 입력, 웨이포인트
 │  │  ├─ UI/                     # 메뉴, HUD, 결과
-│  │  └─ Audio/                  # 음악, 효과음, 엔진음, 충돌음·진동, 볼륨
+│  │  ├─ Audio/                  # 음악, 효과음, 엔진음, 충돌음·진동, 볼륨
+│  │  └─ Effects/                # 카트 파티클(드리프트 불꽃, 부스트 배기 불꽃)
 │  ├─ Prefabs/ (Kart, Items, Track, UI)
 │  ├─ Materials/  Models/  Textures/  Audio/  VFX/
 │  ├─ Fonts/                     # TMP 폰트 에셋 (Pretendard SDF), 포함 글자 목록
@@ -306,6 +307,8 @@ namespace VRKart.Core
 | `Environment/Ground_Grass` | 1200m x 1200m 바닥 (`Grass`) |
 | `Environment/Scenery` | Kenney 모델 장식 (약 830개, 모두 Static): 결승선 게이트, 관중석 10, 피트 6, 조명탑, 깃발, 코너 배너 탑, 광고판, 텐트, 나무 320, 바위, 덤불, 꽃, 풀, 통나무. 모두 벽에서 떨어져 있어 주행에 닿지 않습니다 |
 | `RaceTrack/Checkpoint_00~40` | 체크포인트 41개 (약 25m 간격, 버튼으로 배치) |
+| `Props/ItemBoxes` | 아이템 박스 3줄 × 4개(2.5m 간격): 메인 직선 110m, 2번째 90° 뒤 직선 445m, 뒷 직선 870m (출발점 기준 중심선 거리) |
+| `Props/DashPads` | 대시 패드 4개: 1번 코너 뒤 238m, 헤어핀 탈출 615m, 뒷 직선 915m(좌우 ±2.5m 두 개). 헤어핀·급커브 **직전에는 두지 않음** |
 | `AIPath/WP_000~171` | AI 웨이포인트 172개 (약 6m 간격, 버튼으로 배치) |
 | `KillZone` | 바닥 아래 1300m x 1300m |
 
@@ -321,7 +324,7 @@ namespace VRKart.Core
 - 결승선(`Finish Distance`)을 옮기면 출발선·출발 위치·카트 4대도 직접 옮겨야 합니다. 장식(`Scenery`)은 자동으로 따라오지 않으니 도로와 겹치는 것을 지웁니다.
 - 반지름은 도로 중심 기준입니다. **반지름 12m 미만은 피하세요**(안쪽 갓길·벽이 겹침). 평행한 구간은 중심선끼리 **24m 이상** 떨어뜨립니다(벽 바깥끼리 7m).
 - `TrackMeshBuilder`: 폭(도로 10, 연석 1, 갓길 3, 벽 두께 0.5·높이 1m)과 머티리얼(`Track_Road`, `Track_LineWhite`, `Track_Curb`, `Track_Runoff`, 벽 = `Track_Curb`). 레이어는 도로·선·연석 `Road`, 갓길 `Grass`, 벽 `Wall`.
-- 대시 패드·아이템 박스(#4·#5)가 나오면 `Track_Main`의 직선 구간(메인 직선, 뒷 직선)에 놓습니다.
+- `Track_Test`에도 아이템 박스 2줄(85m, 535m)·대시 패드 2개(335m, 680m)를 직선 구간에 놓았습니다(AI 아이템 테스트용).
 
 ## 체크포인트 & 랩 규칙
 
@@ -376,7 +379,7 @@ namespace VRKart.Core
 
 - `Track_Test` 설정: `AI 1` 0.96 / +1.5m, `AI 2` 0.92 / -1.5m, `AI 3` 0.88 / 0m. 플레이어 카트는 최고 속도 20m/s(`KartStats_Default`)입니다.
 - 완주한 AI는 목표 속도 60%로 계속 달립니다(멈춰서 뒤 카트를 막지 않게).
-- 아이템 사용(FR-ITEM-05, P2)은 #5 이후에 붙입니다(`UseItem`은 지금 항상 false).
+- **아이템 사용**(FR-ITEM-05): 같은 카트의 `ItemHolder`를 보고, 받은 뒤 1~3초(무작위) 기다렸다가 기회를 봅니다. **부스터** = 앞 25m 커브가 15° 이하(직선), **쉘** = 40m 안 정면 ±8°에 카트, **바나나** = 20m 안 뒤쪽 ±35°에 카트. 8초가 지나면 기회가 없어도 씁니다. `UseItem`은 두 프레임 동안 true(`ItemHolder`와 Update 순서 무관).
 
 ## 레이스 흐름 (`RaceManager`)
 
@@ -429,7 +432,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
   - 핸들·조종석 모양이 바뀌면 이 자리도 다시 확인해야 합니다. 실제로 핸들을 잡은 손이 패널 안쪽 아래 모서리를 가리는지는 실기기에서 확인이 필요합니다.
   - 값이 바뀔 때만 텍스트를 갱신합니다(매 프레임 문자열 생성 X → GC 부담 없음).
   - 순위는 `RaceProgress.Rank`입니다(RaceManager가 0.2초마다 갱신하는 실시간 순위).
-  - **아이템 칸은 비어 있습니다.** #5 `ItemHolder`가 나오면 `DashLeft/ItemSlot/Icon` 이미지에 연결합니다.
+  - **아이템 칸**: 플레이어 `ItemHolder.ItemChanged` → `DashLeft/ItemSlot/Icon`에 아이콘(`Textures/UI/Item_Booster·Banana·Shell.png`, 직접 그림), 받을 때 1.35배로 커졌다가 돌아옴. 없으면 빈 칸.
 - `RaceMessages` — 가운데 메시지: 정면 **2m**, ±15° 안. `Pretendard-SemiBold SDF - Outline` 머티리얼(외곽선)이라 밝은 하늘 위에서도 읽힙니다.
   - 카운트다운 `3 · 2 · 1 · 출발!`(크게 떴다 작아짐), 랩 완료 시 `N랩  0:00.000` 2.5초, 마지막 랩 진입 시 `마지막 랩!`, 역주행 중 `역주행!`(빨강)
   - 게임 시간 기준이라 일시정지하면 메시지도 멈춥니다.
@@ -442,7 +445,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
   - 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 정면 1.5m에 놓입니다(`PlayerSpace`).
   - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
 - **설정** (`PlayerPrefs`): `GameSettings.MasterVolume`(= `AudioListener.volume`), `AudioVolumes.Music`·`AudioVolumes.Sfx`(아래 사운드 절). 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
-  - **비네팅 on/off·강도는 #6 `ComfortSettings`(이창민)가 나오면** 설정 화면에 연결합니다. 멀미 옵션은 `ComfortSettings`가 저장까지 맡습니다.
+  - 멀미 저감(#6 `ComfortSettings`): **멀미 저감 켬/끔**(버튼) → `VignetteEnabled`, **강도** 슬라이더 → `VignetteIntensity`(끔이면 비활성), **수평 유지 켬/끔** → `HorizonLock`. `뒤로`를 누를 때 `ComfortSettings.Save()`. 방식(틴팅/가장자리)과 평가용 표시는 설정 화면에 넣지 않았습니다(기본 틴팅).
 - **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m, **눈높이 +0.08m**에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다. 결과 화면은 +0.12m. 조종석 앞유리 안(눈 기준 약 10° 아래 ~ 19° 위)에 패널 전체가 들어오게 한 값입니다(그보다 낮으면 대시보드에 가려짐).
   - XRI 기본 입력 액션에는 메뉴 버튼이 없어서, `PauseMenu`가 `<XRController>{LeftHand}/{MenuButton}` 바인딩을 직접 만듭니다.
 - 빌드 씬 목록: `MainMenu`를 **맨 끝에 추가만** 했습니다. **빌드 첫 씬(0번)은 아직 CI용 `Changmin_Setup`**이라, APK를 실행하면 메뉴가 아니라 그 씬이 먼저 뜹니다. 첫 씬을 `MainMenu`로 바꿀지는 이창민과 합의가 필요합니다.
@@ -478,7 +481,14 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - 소리 볼륨 = 컴포넌트 기본 볼륨 × `AudioVolumes`(× 전체 볼륨은 `AudioListener`가 처리).
 - `SimulatedGearbox` (`Scripts/Core/`, 공용): 속도 비율로 단수(6단)·회전수를 흉내 냅니다. 계기판(`CockpitGauges`)과 엔진음이 같은 값을 써서 바늘과 소리가 맞습니다.
 - 임포트 설정: 효과음 = Decompress On Load + Vorbis, 엔진 루프 = ADPCM(루프 이음매 끊김 없음, 모노), BGM = Streaming + Vorbis.
-- 드리프트·부스트 소리(#4), 아이템 소리(#5)는 해당 기능이 나오면 `RaceAudio`처럼 이벤트를 구독해서 붙입니다.
+- **`KartSfx`** (카트 자식 `Audio`, 플레이어·AI 공통): 드리프트 타이어 소리 루프(`DriftBoost.DriftStarted/Ended`), 충전 1·2단 딸깍(`BoostLevelChanged`), **부스트 휙**(`KartController.BoostStarted` — 미니 터보·대시 패드·부스터 공통), 아이템 획득(`ItemHolder.ItemChanged`)·바나나 놓기·쉘 발사(`ItemUsed`), 스핀아웃 피격(`SpunOut`). 플레이어 카트는 진동도(부스트 약하게, 피격 강하게).
+- 타이어 소리(`Audio/Kart/Drift_Skid_Loop.wav`)와 부스트 소리(`Boost_Whoosh.wav`)는 **코드로 직접 합성**한 파일입니다(잡음 대역 필터 + 배음). 더 좋은 소리로 바꾸려면 `KartSfx` 필드만 교체.
+
+### 카트 파티클 (`Scripts/Effects/KartEffects.cs`, AI 차량만)
+
+- `Kart_AI_*`의 자식 `Effects`에 붙음. **드리프트 불꽃**: `DriftFX/RearLeft·RearRight/Sparks`(차 모델 뒷바퀴 바닥으로 옮김 — 세단 z -0.76, 해치백 z -0.93). 충전 단계 0 → 1 → 2마다 색이 흰색 → 주황 → 파랑. **부스트 불꽃**: `Effects/Exhaust_L·R/Flame`(차 뒤 배기구), `BoostStarted`의 지속 시간 동안.
+- 플레이어 카트에는 없습니다(운전석에서 뒤가 안 보임 — 소리·진동으로 대신).
+- 머티리얼 `VFX/VFX_Spark·VFX_Flame`(URP Particles/Unlit 가산), 텍스처 `VFX_SoftDot.png`(직접 생성). 파티클 수 최대 60/40개라 Quest 부담 작음.
 
 ## 씬 흐름
 
