@@ -165,7 +165,7 @@ Assets/
 | Racing Car Engine Sound Loops — 3개 (`loop_0`, `loop_2_0`, `loop_5_0`, WAV 원본) — domasx2 | https://opengameart.org/content/racing-car-engine-sound-loops | CC0 (`LICENSE.txt`에 출처 기록) | `Assets/ThirdParty/OpenGameArt/EngineLoops/` | 엔진음 (공회전/중간/고회전) | 윤승희 / #14 사운드 PR |
 | Hyperflight Racing (60.7초 루프) — cynicmusic | https://opengameart.org/content/hyperflight-racing | CC0 (`LICENSE.txt`에 출처 기록) | `Assets/ThirdParty/OpenGameArt/HyperflightRacing/Hyperflight_Racing.ogg` (OpenGameArt가 제공하는 같은 곡의 OGG 버전, 0.8MB) | 메뉴·레이스 BGM | 윤승희 / #14 사운드 PR |
 | Pretendard **SemiBold** (v1.3.9, `public/static/Pretendard-SemiBold.otf` 1개만) | https://github.com/orioncactus/pretendard/releases/tag/v1.3.9 | SIL OFL 1.1 (`OFL.txt` 동봉) | 원본 `Assets/ThirdParty/Fonts/Pretendard/`, TMP 폰트 에셋 `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset` | TMP 기본 폰트 (한글 UI) | 윤승희 / #12 결과 화면 PR |
-| (참고 데이터, 레포에 파일 없음) 캠퍼스 트랙 축척·높이 — OpenStreetMap 도로(지도 이미지 축척 맞추기), SRTM 30m·ASTER GDEM 30m 표고(OpenTopoData로 코스 위 111점 조회) | https://www.openstreetmap.org , https://www.opentopodata.org | OSM: ODbL / SRTM: 퍼블릭 도메인 / ASTER GDEM: NASA·METI 무료 사용 | 없음 (`Track_Campus`의 `TrackLayout` Rise 값으로만 반영) | `Track_Campus` 코스 길이·높이 (#48). 지도·로드뷰 화면은 참고만, 레포에 넣지 않음 | 윤승희 / #48 캠퍼스 트랙 PR |
+| (참고 데이터, 레포에 파일 없음) 캠퍼스 트랙 축척·높이 — OpenStreetMap 도로(지도 이미지 축척 맞추기)·**건물 윤곽 300동**(Track_Campus 건물), 구글 지도 위성사진(지붕 색·운동장·숲 위치 참고만, 이미지 저장 안 함), SRTM 30m·ASTER GDEM 30m 표고(OpenTopoData로 코스 위 111점 조회) | https://www.openstreetmap.org , https://www.opentopodata.org | OSM: ODbL / SRTM: 퍼블릭 도메인 / ASTER GDEM: NASA·METI 무료 사용 | 없음 (`TrackLayout` Rise 값, 씬 안 건물 메시로만 반영) | `Track_Campus` 코스 길이·높이 (#48). 지도·로드뷰 화면은 참고만, 레포에 넣지 않음 | 윤승희 / #48 캠퍼스 트랙 PR |
 
 ## 7. 크레딧
 
