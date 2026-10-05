@@ -359,18 +359,20 @@ namespace VRKart.Core
 **구성**
 | 오브젝트 | 내용 |
 | --- | --- |
-| `Track` | `TrackLayout`(회전 180° = 남쪽 출발, 결승선 35m, Height Smoothing 8m) + `TrackMeshBuilder`(흙 둑 끔, Ground Height -7, **벽 숨김(투명 벽 1.5m)·연석 없음·갓길 = 숲 바닥색**) + **`TrackTerrain`**(Verge Width 5m) — 경기장처럼 따로 놀지 않고 캠퍼스 길처럼 주변 땅과 이어짐 |
-| `Campus/Buildings` | **OpenStreetMap 건물 윤곽**(+ 구글 위성사진 확인)을 그대로 세운 건물 300동(캠퍼스 23동 + 남쪽 시내·아파트). 높이 = OSM 층수 × 2.4m(없으면 캠퍼스 6층·주택 3층·아파트 12층), 층마다 창문 띠(10층 이상 캠퍼스 건물은 세로 창문 줄 — 인문과학대학 11층). 캠퍼스 = 흰 벽·회색 평지붕, 체육관(예술체육대학1관) = 파란 지붕, 시내 = 초록 방수 옥상(위성사진). 트랙에서 10.25m 안으로 들어오면 중심 쪽으로 줄이거나(19동) 트랙 반대쪽으로 옮기고(4동), 그래도 겹치면 뺌(38동, 대부분 캠퍼스 밖 주택). 벽·지붕·창문을 머티리얼별로 합친 메시 6개(삼각형 약 1.4만). 이름 간판 5개(인문과학대학·소프트웨어대학·예술체육대학1관·2관·생명자원과학대학)는 트랙에 가장 가까운 벽에 |
+| `Track` | `TrackLayout`(회전 180° = 남쪽 출발, 결승선 35m, Height Smoothing 8m) + `TrackMeshBuilder`(흙 둑 끔, Ground Height -7, **벽 숨김(투명 벽 1.5m) + 벽 자리에 낮은 연석 0.25m(`Campus_Curb`)·빨강/흰 연석 없음·갓길 = 보도(`Campus_Paving`)**) + **`TrackTerrain`**(Verge Width 5m, 비탈 = 콘크리트 바닥 `Campus_Ground`) — 경기장처럼 따로 놀지 않고 캠퍼스 길처럼 주변 땅과 이어짐 |
+| `Campus/Buildings` | **OpenStreetMap 건물 윤곽**(+ 구글 위성사진 확인)을 그대로 세운 건물 300동(캠퍼스 23동 + 남쪽 시내·아파트). 높이 = OSM 층수 × 2.4m(없으면 캠퍼스 6층·주택 3층·아파트 12층), 층마다 창문 띠(10층 이상 캠퍼스 건물은 세로 창문 줄 — 인문과학대학 11층). 캠퍼스 = 흰 벽·회색 평지붕, 체육관(예술체육대학1관) = 파란 지붕, 시내 = 초록 방수 옥상(위성사진). 트랙에서 10.25m 안으로 들어오면 중심 쪽으로 줄이거나(19동) 트랙 반대쪽으로 옮기고(4동), 그래도 겹치면 뺌(38동, 대부분 캠퍼스 밖 주택). 벽·지붕·창문을 머티리얼별로 합친 메시 6개(삼각형 약 1.4만). 건물 바닥은 벽을 따라 2m마다 잰 **보이는 가장 낮은 면**(지형·비탈)보다 1.5m 아래까지 내려서 비탈 위에서 떠 보이지 않음. 이름 간판 5개(인문과학대학·소프트웨어대학·예술체육대학1관·2관·생명자원과학대학)는 트랙에 가장 가까운 벽에 |
 | `Campus/SportsField`, `Campus/CentralPlaza` | 위성사진의 **인조잔디 운동장**(주황 트랙 테두리, 32×49m, 비탈 위 석축 단)과 **흙 광장**(반지름 12m, 가운데 흰 기둥) |
 | `Campus/MainGate` | **정문**(로드뷰·정문 사진 참고): 복귀 구간이 출발 직선으로 꺾이는 코너 바깥(1,013m 옆). 석축 옹벽(폭 36m, 높이 +6.4m) 가운데 넓은 계단 22단, 계단 왼쪽 콘크리트 기둥(11m), 옹벽 위 산울타리·나무, 오른쪽 옹벽의 주차장 입구, 계단 위 `동아대학교 승학캠퍼스` 현수막, 위 광장의 흰 기둥 조형물(세로 `동아대학교`) |
 | `Campus/GateStreet` | **정문 앞 도로**(953m ~ 다음 바퀴 25m): 빨강/흰 연석을 도로색으로 덮고, 가장자리 노란 선, 갓길 = 보도블록, 벽 = 석재 마감, 999m에 횡단보도. 보이기만 하는 상자를 머티리얼별로 합친 메시 5개(콜라이더 없음 → 주행·갓길 감속은 그대로) |
-| `Environment/Scenery/Trees` | Kenney 나무 900그루 — 위성사진처럼 캠퍼스 둘레를 숲으로(침엽수 80%), 주택가에는 심지 않음. 지형·바닥은 짙은 숲색(`Campus_ForestGround`) |
+| `Campus/Pavement` | **건물 단지 느낌**: 지형 중 트랙에서 30m 안 또는 건물·시설 근처(+16m) 삼각형을 5cm 위에 콘크리트 포장(`Campus_Ground`)으로 덮은 메시(약 1.3만 삼각형, 씬에 저장). 나머지(바깥 산)는 짙은 숲색(`Campus_ForestGround`) |
+| `Environment/Scenery/Trees` | 캠퍼스 안 조경수 70그루(활엽수) + 바깥 산 숲 380그루(침엽수). 트랙 13.75m 안·건물·주택가에는 심지 않음 |
 | `Props/ItemBoxes` | 3줄: 141m(캠퍼스 밖), 464m(중앙 광장), 877m(내리막) |
 | `Props/DashPads` | 325m·560m(오르막 가운데), 978m(내리막 좌우 2개) — 경사에 맞춰 기울임 |
 | `Environment/Ground_Grass` | y -7.55, 1,370m 사방 (지형 가장자리 아래) / `KillZone` y -25 |
 
 - **`TrackTerrain`**(새 컴포넌트, `[ExecuteAlways]`, 씬에 저장 안 함): 트랙 둘레 80m까지 4m 격자 지형(버텍스 약 1.4만, Grass 레이어, 메시 콜라이더). 격자 점 높이 = 트랙 높이 거리 가중 평균, 도로·갓길 아래는 도로보다 0.4m 낮게, 벽 바깥은 1m당 0.5m까지만 벗어남, 가장자리 50m에서 `Edge Height`(-7m)로 내려감. 높낮이가 큰 트랙에서 흙 둑(`Embankments`) 대신 씁니다. **`Verge Width`**(비탈 폭)를 주면 갓길 가장자리(도로 높이)에서 자연 지형 높이까지 비탈 + 바깥 끝 치마(틈 가림)를 만들고, 그 아래 격자 지형은 낮춥니다. 두 갈래 길처럼 다른 구간이 가까운 곳은 비탈 폭을 줄여 겹치지 않게 합니다.
-- `TrackMeshBuilder` 옵션(기본값은 기존과 같음 → `Track_Main`·`Track_Test` 변화 없음): `Build Embankments`(흙 둑), **`Walls Visible`**(끄면 벽은 콜라이더만 = 투명 벽), **`Build Curbs`**(빨강/흰 연석). `ShoulderEdge` 속성 추가.
+- `TrackMeshBuilder` 옵션(기본값은 기존과 같음 → `Track_Main`·`Track_Test` 변화 없음): `Build Embankments`(흙 둑), **`Walls Visible`**(끄면 벽은 콜라이더만 = 투명 벽), **`Build Curbs`**(빨강/흰 연석), **`Low Curb Height`·`Low Curb Material`**(벽을 숨겼을 때 벽 자리에 보이는 낮은 연석, 콜라이더 없음). `ShoulderEdge` 속성 추가.
+- `TrackTerrain`: `Verge Material`(비탈만 다른 머티리얼), 비탈에도 메시 콜라이더(Grass 레이어, 장식 배치용 — 투명 벽 바깥이라 카트는 닿지 않음).
 - 머티리얼 `Materials/Environment/Campus_*`(URP Lit): Building·Window·Sign·White·Stone·Hedge·Granite·Concrete·Paving·PaintYellow·RoofGray·RoofGreen·RoofBlue·Turf·TrackRed·Dirt·ForestGround.
 - **자동 주행 테스트**(4대 모두 AI, 3랩): 전원 완주(AI 1 185.3s ~ AI 3 214.6s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
 - 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).

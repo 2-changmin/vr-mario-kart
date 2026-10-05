@@ -31,6 +31,8 @@ namespace VRKart.Track
         [SerializeField, Min(1f)] private float _blendDistance = 15f;
         [Tooltip("0보다 크면 갓길 바깥 가장자리에서 지형까지 이어지는 비탈을 이 폭(m)으로 만든다. 벽을 숨긴 트랙(Walls Visible 끔)에서 트랙과 지형 사이 틈·단차를 없앤다")]
         [SerializeField, Min(0f)] private float _vergeWidth;
+        [Tooltip("비탈 머티리얼 (비우면 지형과 같음)")]
+        [SerializeField] private Material _vergeMaterial;
         [SerializeField] private Material _material;
         [SerializeField, Min(0.01f)] private float _uvScale = 0.125f;
 
@@ -230,8 +232,9 @@ namespace VRKart.Track
             go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var meshRenderer = go.AddComponent<MeshRenderer>();
-            meshRenderer.sharedMaterial = _material;
+            meshRenderer.sharedMaterial = _vergeMaterial != null ? _vergeMaterial : _material;
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            go.AddComponent<MeshCollider>().sharedMesh = mesh;   // 장식 배치 때 보이는 가장 낮은 면을 찾도록
             _generated.Add(go);
             _generated.Add(mesh);
         }

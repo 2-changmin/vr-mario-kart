@@ -38,6 +38,9 @@ namespace VRKart.Track
         [SerializeField] private bool _wallsVisible = true;
         [Tooltip("끄면 커브 가장자리의 빨강/흰 연석을 만들지 않는다")]
         [SerializeField] private bool _buildCurbs = true;
+        [Tooltip("벽을 숨겼을 때 벽 자리에 보이게 둘 낮은 연석 높이(m). 0이면 없음 (콜라이더는 투명 벽이 맡음)")]
+        [SerializeField, Min(0f)] private float _lowCurbHeight;
+        [SerializeField] private Material _lowCurbMaterial;
         [Header("머티리얼")]
         [SerializeField] private Material _roadMaterial;
         [SerializeField] private Material _lineMaterial;
@@ -121,6 +124,13 @@ namespace VRKart.Track
             walls.Wall(samples, -wallEnd, -shoulderEnd, WallBottom, _wallHeight, _groundHeight, _stripeLength * 2f);
             walls.Wall(samples, shoulderEnd, wallEnd, WallBottom, _wallHeight, _groundHeight, _stripeLength * 2f);
             Create("Walls", WallLayer, walls, _wallMaterial, collider: true, shadows: true, visible: _wallsVisible);
+            if (!_wallsVisible && _lowCurbHeight > 0f)
+            {
+                var low = new MeshData();
+                low.Wall(samples, -wallEnd, -shoulderEnd, WallBottom, _lowCurbHeight, _groundHeight, _stripeLength * 2f);
+                low.Wall(samples, shoulderEnd, wallEnd, WallBottom, _lowCurbHeight, _groundHeight, _stripeLength * 2f);
+                Create("LowCurbs", WallLayer, low, _lowCurbMaterial != null ? _lowCurbMaterial : _wallMaterial, collider: false, shadows: false);
+            }
 
             // 도로가 바닥보다 높은 구간: 벽 바깥에서 바닥까지 흙 둑 (보이기만, 콜라이더 없음)
             if (!_buildEmbankments) return;
