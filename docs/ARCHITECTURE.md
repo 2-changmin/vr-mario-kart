@@ -11,6 +11,7 @@ Assets/
 │  │  ├─ MainMenu.unity
 │  │  ├─ Track_Test.unity        # 그레이박스 테스트 트랙
 │  │  ├─ Track_Main.unity        # 메인 트랙
+│  │  ├─ Track_Campus.unity      # 두 번째 트랙: 동아대 승학캠퍼스 (#48)
 │  │  └─ Sandbox/                # 개인 실험 씬 (이름_기능.unity)
 │  ├─ Scripts/
 │  │  ├─ Core/                   # 공용: 인터페이스, 이벤트, 유틸
@@ -343,6 +344,33 @@ namespace VRKart.Core
 - 작은 식물(풀·꽃·덤불·통나무·바위 465개)은 그림자를 끔. 그림자는 `Mobile_RPAsset`(그림자 50m, 캐스케이드 1, 1024)에서 실시간 방향광 1개.
 - **라이트 베이크는 하지 않음**: 도로·벽 메시가 실행 시 생성돼서(`TrackMeshBuilder`) 라이트맵을 받을 수 없고, 장식만 굽으면 도로와 밝기가 달라집니다. 대신 실시간 조명 + 3색 환경광 + 안개.
 
+## 캠퍼스 트랙 (`Track_Campus.unity`, #48)
+
+동아대학교 승학캠퍼스 둘레를 도는 두 번째 트랙입니다. `Track_Main`을 복사해 트랙·장식만 바꿨고, 레이스 오브젝트(`RaceManager`, `UI`, 카트 4대, 출발선·출발 위치, 결승 게이트)는 같은 구성입니다.
+
+**코스 만든 방법**
+- 승희가 지도에 그린 코스(캠퍼스 밖 린다프레스티지 블록 → 인문과학대 → 중앙 광장 → 소프트웨어대 → 꼭대기 회차 → 광장 복귀 → 생명자원과학대 → 출발)를 따라 꼭짓점을 찍고, 꼭짓점마다 반지름 22m(최소 14.4m) 원호로 모서리를 깎아 `TrackLayout` 조각 81개로 만들었습니다. 한 바퀴 **1,048m**.
+- 지도 이미지는 OpenStreetMap 도로와 자동 정합해 축척을 구했습니다(0.67m/px). 실제 코스는 약 2.0km → 게임은 **가로 0.52배**.
+- 지도에서 코스가 겹치는 곳(광장 ↔ 소프트웨어대 구간)은 **두 갈래 길로 나눴습니다**: 올라갈 때는 북쪽, 내려올 때는 남쪽 길. 두 길 중심 간격 최소 23m(벽 사이 약 6m)라 서로 겹치지 않습니다.
+- **높이 = 실측 표고**: 코스를 따라 SRTM·ASTER 30m 위성 표고(OpenTopoData)를 받아 평균하고, 가로와 같은 0.52배로 줄여 **실제 경사를 유지**했습니다. 단 15%보다 가파른 곳만 15% 근처로 눌렀습니다(`tanh` 압축). 결과: 출발점 기준 **-5.7m(캠퍼스 밖 서쪽) ~ +36m(꼭대기 회차)**, 최대 경사 **14.7%**, 언덕 꼭대기 반지름 최소 90m. 실측(같은 축척) 최고 높이 약 57m의 약 65%입니다. 출발·결승 구간(-30 ~ +45m)은 평평합니다.
+  - #50 기준(10%)보다 가파르지만, 실제 캠퍼스 경사를 살리려고 15%까지 허용했습니다. 자동 주행 테스트에서 문제 없었습니다(아래).
+- 원본 데이터·스크립트(지도 정합, 표고, 조각 계산)는 저장소에 넣지 않았습니다. 지도·로드뷰 이미지도 넣지 않았습니다(참고만).
+
+**구성**
+| 오브젝트 | 내용 |
+| --- | --- |
+| `Track` | `TrackLayout`(회전 180° = 남쪽 출발, 결승선 35m, Height Smoothing 8m) + `TrackMeshBuilder`(흙 둑 끔, Ground Height -7) + **`TrackTerrain`** |
+| `Campus` | 건물 상자 12개(인문과학대학·소프트웨어대학·예술체육대학2관·생명자원과학대학은 이름 간판, 나머지는 캠퍼스 건물·주변 아파트·학교) + 정문(255m, `동아대학교 승학캠퍼스` 간판). 위치는 지도 아이콘 좌표, 트랙에 너무 가까우면 바깥으로 밀어냄. 로고는 쓰지 않음 |
+| `Environment/Scenery/Trees` | Kenney 나무 350그루(메인 트랙 나무의 종류·크기 그대로) |
+| `Props/ItemBoxes` | 3줄: 141m(캠퍼스 밖), 464m(중앙 광장), 877m(내리막) |
+| `Props/DashPads` | 325m·560m(오르막 가운데), 978m(내리막 좌우 2개) — 경사에 맞춰 기울임 |
+| `Environment/Ground_Grass` | y -7.55, 1,370m 사방 (지형 가장자리 아래) / `KillZone` y -25 |
+
+- **`TrackTerrain`**(새 컴포넌트, `[ExecuteAlways]`, 씬에 저장 안 함): 트랙 둘레 80m까지 4m 격자 지형(버텍스 약 1.4만, Grass 레이어, 메시 콜라이더). 격자 점 높이 = 트랙 높이 거리 가중 평균, 도로·갓길 아래는 도로보다 0.4m 낮게, 벽 바깥은 1m당 0.5m까지만 벗어남, 가장자리 50m에서 `Edge Height`(-7m)로 내려감. 높낮이가 큰 트랙에서 흙 둑(`Embankments`) 대신 씁니다. `TrackMeshBuilder`에 `Build Embankments` 끄기 옵션을 추가했습니다.
+- 머티리얼 `Materials/Environment/Campus_Building·Campus_Window·Campus_Sign`(URP Lit).
+- **자동 주행 테스트**(4대 모두 AI, 3랩): 전원 완주(AI 1 185.3s ~ AI 3 214.6s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
+- 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).
+
 ## 체크포인트 & 랩 규칙
 
 `Scripts/Race/` (`VRKart.Race`)
@@ -458,7 +486,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 ## UI — 메인 메뉴 · 일시정지 (`UI_MainMenu`, `UI_PauseMenu`)
 
 - **`Scenes/MainMenu.unity`**: XR Origin, `EventSystem` + `XRUIInputModule`, 바닥, `UI_MainMenu`
-  - `MainMenu` — `시작` → `Race Scene`(`Track_Main`) / `설정` → 볼륨 슬라이더 3개(전체·배경음악·효과음) / `종료`
+  - `MainMenu` — `트랙: …`(누를 때마다 `서킷`(`Track_Main`) ↔ `동아대 캠퍼스`(`Track_Campus`), 메뉴로 돌아와도 기억) / `시작` → 고른 트랙 / `설정` → 볼륨 슬라이더 3개(전체·배경음악·효과음) / `종료`
   - 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 정면 1.5m에 놓입니다(`PlayerSpace`).
   - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
 - **설정** (`PlayerPrefs`): `GameSettings.MasterVolume`(= `AudioListener.volume`), `AudioVolumes.Music`·`AudioVolumes.Sfx`(아래 사운드 절). 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
@@ -510,7 +538,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 ## 씬 흐름
 
 ```
-MainMenu ──시작──▶ Track_Main (Countdown → Racing → Finished) ──재시작──▶ Track_Main
+MainMenu ──시작──▶ Track_Main 또는 Track_Campus (Countdown → Racing → Finished) ──재시작──▶ Track_Main
     ▲                                                          │
     └──────────────────────────메뉴──────────────────────────────┘
 ```

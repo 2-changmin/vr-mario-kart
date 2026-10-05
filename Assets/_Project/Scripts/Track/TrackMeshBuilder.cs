@@ -31,6 +31,8 @@ namespace VRKart.Track
         [SerializeField] private float _groundHeight = -0.1f;
         [Tooltip("흙 둑 기울기: 높이 1m당 옆으로 퍼지는 거리(m)")]
         [SerializeField, Min(0.5f)] private float _embankmentRatio = 2f;
+        [Tooltip("끄면 흙 둑을 만들지 않는다 (TrackTerrain이 주변 지형을 따로 만드는 트랙)")]
+        [SerializeField] private bool _buildEmbankments = true;
         [Header("머티리얼")]
         [SerializeField] private Material _roadMaterial;
         [SerializeField] private Material _lineMaterial;
@@ -114,6 +116,7 @@ namespace VRKart.Track
             Create("Walls", WallLayer, walls, _wallMaterial, collider: true, shadows: true);
 
             // 도로가 바닥보다 높은 구간: 벽 바깥에서 바닥까지 흙 둑 (보이기만, 콜라이더 없음)
+            if (!_buildEmbankments) return;
             var banks = new MeshData();
             banks.Bank(samples, wallEnd, 1f, _groundHeight, _embankmentRatio, _roadWidth);
             banks.Bank(samples, wallEnd, -1f, _groundHeight, _embankmentRatio, _roadWidth);

@@ -9,6 +9,7 @@ namespace VRKart.Race
         public const string MainMenu = "MainMenu";
         public const string TrackMain = "Track_Main";
         public const string TrackTest = "Track_Test";
+        public const string TrackCampus = "Track_Campus";
 
         public static bool Load(string sceneName)
         {
