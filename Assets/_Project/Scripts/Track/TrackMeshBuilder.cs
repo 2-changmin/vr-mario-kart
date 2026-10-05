@@ -15,7 +15,7 @@ namespace VRKart.Track
         private const int RoadLayer = 8;
         private const int GrassLayer = 9;
         private const int WallLayer = 10;
-        private const float WallBottom = -0.3f;   // 벽 아래를 땅속까지 내려서 바깥에서 볼 때 틈이 안 보이게
+        private const float WallBottom = -0.3f;   // 벽 아래를 땅속까지 내려서 바깥에서 볼 때 틈이 안 보이게 (도로 기준)
 
         [Header("폭 / 높이 (m)")]
         [SerializeField, Min(2f)] private float _roadWidth = 10f;
@@ -26,12 +26,18 @@ namespace VRKart.Track
         [SerializeField, Min(0.1f)] private float _wallHeight = 1f;
         [SerializeField, Min(0.5f)] private float _stripeLength = 2f;   // 연석·벽 줄무늬 한 칸 길이
 
+        [Header("경사 구간 (#50)")]
+        [Tooltip("트랙 밖 바닥 높이(월드 y). 도로가 이보다 높으면 벽을 바닥까지 내리고 바깥에 흙 둑을 만든다")]
+        [SerializeField] private float _groundHeight = -0.1f;
+        [Tooltip("흙 둑 기울기: 높이 1m당 옆으로 퍼지는 거리(m)")]
+        [SerializeField, Min(0.5f)] private float _embankmentRatio = 2f;
         [Header("머티리얼")]
         [SerializeField] private Material _roadMaterial;
         [SerializeField] private Material _lineMaterial;
         [SerializeField] private Material _curbMaterial;
         [SerializeField] private Material _shoulderMaterial;
         [SerializeField] private Material _wallMaterial;
+        [SerializeField] private Material _embankmentMaterial;
 
         private readonly List<UnityEngine.Object> _generated = new List<UnityEngine.Object>();
         private TrackLayout _layout;
@@ -103,9 +109,15 @@ namespace VRKart.Track
             Create("Shoulders", GrassLayer, shoulders, _shoulderMaterial, collider: true, shadows: false);
 
             var walls = new MeshData();
-            walls.Wall(samples, -wallEnd, -shoulderEnd, WallBottom, _wallHeight, _stripeLength * 2f);
-            walls.Wall(samples, shoulderEnd, wallEnd, WallBottom, _wallHeight, _stripeLength * 2f);
+            walls.Wall(samples, -wallEnd, -shoulderEnd, WallBottom, _wallHeight, _groundHeight, _stripeLength * 2f);
+            walls.Wall(samples, shoulderEnd, wallEnd, WallBottom, _wallHeight, _groundHeight, _stripeLength * 2f);
             Create("Walls", WallLayer, walls, _wallMaterial, collider: true, shadows: true);
+
+            // 도로가 바닥보다 높은 구간: 벽 바깥에서 바닥까지 흙 둑 (보이기만, 콜라이더 없음)
+            var banks = new MeshData();
+            banks.Bank(samples, wallEnd, 1f, _groundHeight, _embankmentRatio, _roadWidth);
+            banks.Bank(samples, wallEnd, -1f, _groundHeight, _embankmentRatio, _roadWidth);
+            if (banks.HasGeometry) Create("Embankments", GrassLayer, banks, _embankmentMaterial != null ? _embankmentMaterial : _shoulderMaterial, collider: false, shadows: false);
         }
 
         private void Create(string name, int layer, MeshData data, Material material, bool collider, bool shadows)
@@ -158,22 +170,47 @@ namespace VRKart.Track
                 }
             }
 
-            // from~to 사이 두께, bottom~top 높이의 벽: from 쪽 면, 윗면, to 쪽 면
-            public void Wall(IReadOnlyList<TrackLayout.Sample> samples, float from, float to, float bottom, float top, float uvLength)
+            public bool HasGeometry => _vertices.Count > 0;
+
+            // from~to 사이 두께의 벽: 아래 = min(도로 + bottom, 바닥 높이), 위 = 도로 + top. from 쪽 면, 윗면, to 쪽 면
+            public void Wall(IReadOnlyList<TrackLayout.Sample> samples, float from, float to, float bottom, float top, float groundY, float uvLength)
             {
                 for (int i = 0; i < samples.Count - 1; i++)
                 {
                     TrackLayout.Sample a = samples[i];
                     TrackLayout.Sample b = samples[i + 1];
-                    Vector3 h = Vector3.up * (top - bottom);
-                    Vector3 down = Vector3.up * bottom;
-                    Vector3 a0 = a.Position + a.Right * from + down, a1 = a.Position + a.Right * to + down;
-                    Vector3 b0 = b.Position + b.Right * from + down, b1 = b.Position + b.Right * to + down;
+                    Vector3 aDown = Vector3.up * (Mathf.Min(a.Position.y + bottom, groundY) - a.Position.y);
+                    Vector3 bDown = Vector3.up * (Mathf.Min(b.Position.y + bottom, groundY) - b.Position.y);
+                    Vector3 up = Vector3.up * top;
+                    Vector3 a0 = a.Position + a.Right * from, a1 = a.Position + a.Right * to;
+                    Vector3 b0 = b.Position + b.Right * from, b1 = b.Position + b.Right * to;
                     float va = a.Distance / uvLength, vb = b.Distance / uvLength;
                     // from 쪽 면 (바깥을 -Right로 봄), 윗면, to 쪽 면 (+Right로 봄)
-                    Quad(a0, a0 + h, b0, b0 + h, -a.Right, -b.Right, va, vb);
-                    Quad(a0 + h, a1 + h, b0 + h, b1 + h, Vector3.up, Vector3.up, va, vb);
-                    Quad(a1 + h, a1, b1 + h, b1, a.Right, b.Right, va, vb);
+                    Quad(a0 + aDown, a0 + up, b0 + bDown, b0 + up, -a.Right, -b.Right, va, vb);
+                    Quad(a0 + up, a1 + up, b0 + up, b1 + up, Vector3.up, Vector3.up, va, vb);
+                    Quad(a1 + up, a1 + aDown, b1 + up, b1 + bDown, a.Right, b.Right, va, vb);
+                }
+            }
+
+            // 벽 바깥(offset = 벽 바깥면, side = +1 오른쪽 / -1 왼쪽)에서 바닥까지 내려가는 흙 둑. 도로가 바닥보다 5cm 이상 높은 구간만.
+            public void Bank(IReadOnlyList<TrackLayout.Sample> samples, float offset, float side, float groundY, float ratio, float uvLength)
+            {
+                for (int i = 0; i < samples.Count - 1; i++)
+                {
+                    TrackLayout.Sample a = samples[i];
+                    TrackLayout.Sample b = samples[i + 1];
+                    float ha = a.Position.y - groundY, hb = b.Position.y - groundY;
+                    if (ha < 0.05f && hb < 0.05f) continue;
+                    Vector3 aTop = a.Position + a.Right * (side * offset) + Vector3.up * -0.05f;
+                    Vector3 bTop = b.Position + b.Right * (side * offset) + Vector3.up * -0.05f;
+                    Vector3 aFoot = a.Position + a.Right * (side * (offset + Mathf.Max(ha, 0f) * ratio));
+                    Vector3 bFoot = b.Position + b.Right * (side * (offset + Mathf.Max(hb, 0f) * ratio));
+                    aFoot.y = groundY; bFoot.y = groundY;
+                    Vector3 normal = (Vector3.up + a.Right * side / ratio).normalized;
+                    float va = a.Distance / uvLength, vb = b.Distance / uvLength;
+                    // Quad는 from(왼쪽) → to(오른쪽) 순서: 오른쪽 둑은 위 → 발, 왼쪽 둑은 발 → 위
+                    if (side > 0f) Quad(aTop, aFoot, bTop, bFoot, normal, normal, va, vb);
+                    else Quad(aFoot, aTop, bFoot, bTop, normal, normal, va, vb);
                 }
             }
 
