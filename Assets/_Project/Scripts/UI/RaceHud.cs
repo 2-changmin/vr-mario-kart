@@ -1,6 +1,8 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using VRKart.Core;
+using VRKart.Items;
 using VRKart.Race;
 
 namespace VRKart.UI
@@ -21,6 +23,13 @@ namespace VRKart.UI
         [SerializeField] private TMP_Text _speedText;
         [SerializeField] private TMP_Text _timeText;
 
+        [Header("아이템 칸 (플레이어 ItemHolder)")]
+        [SerializeField] private Image _itemIcon;
+        [SerializeField] private Sprite _boosterIcon;
+        [SerializeField] private Sprite _bananaIcon;
+        [SerializeField] private Sprite _shellIcon;
+        [SerializeField, Min(1f)] private float _itemPopScale = 1.35f;   // 아이템을 받으면 잠깐 커졌다가 돌아옴
+
         private RaceProgress _player;
         private IKart _playerKart;
         private int _participantCount;
@@ -29,6 +38,8 @@ namespace VRKart.UI
         private int _shownSpeed = -1;
         private int _shownTenths = -1;
         private bool _docked;
+        private ItemHolder _playerItems;
+        private float _itemPop;
 
         public bool IsShown => _content.activeSelf;
 
@@ -72,6 +83,32 @@ namespace VRKart.UI
             _player = _raceManager.Player;
             _playerKart = _player != null ? _player.GetComponent<IKart>() : null;
             _participantCount = _raceManager.GetResults().Count;
+            _playerItems = _player != null ? _player.GetComponent<ItemHolder>() : null;
+            if (_playerItems != null) _playerItems.ItemChanged += ShowItem;
+            ShowItem(_playerItems != null ? _playerItems.CurrentItem : ItemType.None, pop: false);
+        }
+
+        private void OnDestroy()
+        {
+            if (_playerItems != null) _playerItems.ItemChanged -= ShowItem;
+        }
+
+        private void ShowItem(ItemType item) => ShowItem(item, pop: true);
+
+        private void ShowItem(ItemType item, bool pop)
+        {
+            if (_itemIcon == null) return;
+            Sprite sprite = item switch
+            {
+                ItemType.Booster => _boosterIcon,
+                ItemType.Banana => _bananaIcon,
+                ItemType.Shell => _shellIcon,
+                _ => null,
+            };
+            _itemIcon.sprite = sprite;
+            _itemIcon.enabled = sprite != null;
+            _itemPop = pop && sprite != null ? 1f : 0f;
+            _itemIcon.rectTransform.localScale = Vector3.one;
         }
 
         private void OnEnable()
@@ -101,6 +138,11 @@ namespace VRKart.UI
         private void Update()
         {
             if (_content.activeSelf) Refresh(false);
+            if (_itemPop > 0f && _itemIcon != null)
+            {
+                _itemPop = Mathf.Max(0f, _itemPop - Time.deltaTime * 4f);
+                _itemIcon.rectTransform.localScale = Vector3.one * Mathf.Lerp(1f, _itemPopScale, _itemPop);
+            }
         }
 
         private void Refresh(bool force)
