@@ -33,6 +33,14 @@ namespace VRKart.Track
         [SerializeField, Min(0f)] private float _vergeWidth;
         [Tooltip("비탈 머티리얼 (비우면 지형과 같음)")]
         [SerializeField] private Material _vergeMaterial;
+        [Tooltip("있으면 지형이 도로보다 Wall Min Height 넘게 높은 곳의 비탈을 수직 석축으로 (산비탈 캠퍼스 도로)")]
+        [SerializeField] private Material _retainingWallMaterial;
+        [SerializeField, Min(0.3f)] private float _wallMinHeight = 1.2f;
+        [SerializeField, Min(0.5f)] private float _wallMaxHeight = 5f;
+        [Tooltip("석축 위 산울타리 (비우면 없음)")]
+        [SerializeField] private Material _hedgeMaterial;
+        [Tooltip("있으면 지형이 도로보다 1m 넘게 낮은 곳의 갓길 끝에 난간")]
+        [SerializeField] private Material _railMaterial;
         [SerializeField] private Material _material;
         [SerializeField, Min(0.01f)] private float _uvScale = 0.125f;
 
@@ -176,8 +184,29 @@ namespace VRKart.Track
             if (_vergeWidth > 0f) BuildVerge(samples, shoulder, (qx, qz) => Natural(qx, qz, out _, out _));
         }
 
+        // 비탈 메시 조립 도우미 (머티리얼마다 하나)
+        private sealed class Strip
+        {
+            public readonly List<Vector3> V = new List<Vector3>();
+            public readonly List<Vector2> U = new List<Vector2>();
+            public readonly List<int> T = new List<int>();
+
+            // a-b-c-d 사각형. twoSided면 뒷면도
+            public void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float uvScale, bool twoSided = false)
+            {
+                int i = V.Count;
+                V.Add(a); V.Add(b); V.Add(c); V.Add(d);
+                float w = (b - a).magnitude * uvScale, h = (d - a).magnitude * uvScale;
+                U.Add(new Vector2(0, 0)); U.Add(new Vector2(w, 0)); U.Add(new Vector2(w, h)); U.Add(new Vector2(0, h));
+                T.AddRange(new[] { i, i + 3, i + 2, i, i + 2, i + 1 });
+                if (twoSided) T.AddRange(new[] { i, i + 2, i + 3, i, i + 1, i + 2 });
+            }
+        }
+
         // 갓길 바깥 가장자리(도로 높이)에서 자연 지형 높이까지 이어지는 비탈 + 바깥 끝에서 아래로 내린 치마(틈 가림).
         // 다른 구간이 가까이 지나가는 곳(두 갈래 길)은 서로 겹치지 않게 폭을 줄인다.
+        // Retaining Wall Material이 있으면 지형이 도로보다 높은 곳은 수직 석축(+ 위 산울타리),
+        // Rail Material이 있으면 지형이 도로보다 낮은 곳은 갓길 끝에 난간을 세운다 (산비탈 캠퍼스 도로처럼).
         private void BuildVerge(IReadOnlyList<TrackLayout.Sample> samples, float shoulder, System.Func<float, float, float> natural)
         {
             int n = samples.Count;
@@ -194,47 +223,102 @@ namespace VRKart.Track
                 width[i] = Mathf.Clamp((other - 2f * shoulder) * 0.5f - 0.2f, 0.3f, _vergeWidth);
             }
 
-            var vertices = new List<Vector3>();
-            var uvs = new List<Vector2>();
-            var triangles = new List<int>();
+            var ground = new Strip();
+            var wall = new Strip();
+            var hedge = new Strip();
+            var rail = new Strip();
             foreach (float side in new[] { -1f, 1f })
             {
-                int start = vertices.Count;
+                var p0 = new Vector3[n]; var p1 = new Vector3[n]; var p2 = new Vector3[n];
+                var cut = new bool[n]; var fill = new bool[n];
                 for (int i = 0; i < n; i++)
                 {
                     TrackLayout.Sample s = samples[i];
                     Vector3 right = s.Right.normalized * side;
-                    Vector3 inner = s.Position + right * shoulder + Vector3.down * 0.02f;
-                    Vector3 outer = s.Position + right * (shoulder + width[i]);
-                    float limit = width[i] * 0.6f;
-                    outer.y = Mathf.Clamp(natural(outer.x, outer.z), s.Position.y - limit, s.Position.y + limit);
-                    vertices.Add(inner); vertices.Add(outer); vertices.Add(outer + Vector3.down * 2.5f);
-                    uvs.Add(new Vector2(inner.x, inner.z) * _uvScale); uvs.Add(new Vector2(outer.x, outer.z) * _uvScale); uvs.Add(new Vector2(outer.x, outer.z) * _uvScale + Vector2.up * 0.3f);
+                    float road = s.Position.y, w = width[i];
+                    Vector3 outer = s.Position + right * (shoulder + w);
+                    float nat = natural(outer.x, outer.z);
+                    cut[i] = _retainingWallMaterial != null && w > 1.5f && nat > road + _wallMinHeight;
+                    fill[i] = _railMaterial != null && nat < road - 1f;
+                    float limit = w * 0.6f;
+                    float outerY = cut[i] ? Mathf.Min(nat, road + _wallMaxHeight) : Mathf.Clamp(nat, road - limit, road + limit);
+                    p0[i] = s.Position + right * shoulder + Vector3.down * 0.02f;
+                    p1[i] = s.Position + right * (shoulder + 0.5f);
+                    p1[i].y = cut[i] ? outerY : Mathf.Lerp(road, outerY, 0.5f / Mathf.Max(w, 0.5f));
+                    p2[i] = outer; p2[i].y = outerY;
                 }
+                RemoveShortRuns(cut, 8);
+                RemoveShortRuns(fill, 6);
                 for (int i = 0; i < n - 1; i++)
                 {
-                    int a = start + i * 3, b = a + 3;
-                    if (side > 0f) { triangles.AddRange(new[] { a, b, b + 1, a, b + 1, a + 1 }); }
-                    else { triangles.AddRange(new[] { a, b + 1, b, a, a + 1, b + 1 }); }
-                    // 치마는 양면
-                    triangles.AddRange(new[] { a + 1, b + 1, b + 2, a + 1, b + 2, a + 2, a + 1, b + 2, b + 1, a + 1, a + 2, b + 2 });
+                    int j = i + 1;
+                    // 오른쪽(side +1)은 진행 방향 오른쪽이 바깥 → 감는 방향을 맞춤
+                    void Face(Strip st, Vector3 a0, Vector3 a1, Vector3 b0, Vector3 b1, float uv, bool two = false)
+                    {
+                        if (side > 0f) st.Quad(a0, a1, b1, b0, uv, two); else st.Quad(a0, b0, b1, a1, uv, two);
+                    }
+                    bool wallHere = cut[i] || cut[j];
+                    Face(wallHere ? wall : ground, p0[i], p1[i], p0[j], p1[j], wallHere ? 0.5f : _uvScale);
+                    Face(ground, p1[i], p2[i], p1[j], p2[j], _uvScale);
+                    Face(ground, p2[i], p2[i] + Vector3.down * 2.5f, p2[j], p2[j] + Vector3.down * 2.5f, _uvScale, true);   // 치마
+                    if (wallHere && _hedgeMaterial != null)
+                    {
+                        Vector3 r0 = (p2[i] - p1[i]); r0.y = 0f; r0 = r0.normalized; Vector3 r1 = (p2[j] - p1[j]); r1.y = 0f; r1 = r1.normalized;
+                        Vector3 h0 = p1[i] + r0 * 0.15f, h1 = p1[j] + r1 * 0.15f, up = Vector3.up * 0.9f;
+                        Face(hedge, h0, h0 + up, h1, h1 + up, 0.5f, true);
+                        Face(hedge, h0 + up, h0 + up + r0 * 1.1f, h1 + up, h1 + up + r1 * 1.1f, 0.5f, true);
+                    }
+                    if (fill[i] && fill[j])
+                    {
+                        Vector3 a = p0[i] + (p1[i] - p0[i]).normalized * 0.25f, b = p0[j] + (p1[j] - p0[j]).normalized * 0.25f;
+                        a.y = samples[i].Position.y; b.y = samples[j].Position.y;
+                        foreach (float y in new[] { 1.0f, 0.5f })
+                            rail.Quad(a + Vector3.up * y, b + Vector3.up * y, b + Vector3.up * (y + 0.07f), a + Vector3.up * (y + 0.07f), 1f, true);
+                        if (i % 3 == 0)
+                        {
+                            Vector3 t = (b - a); t.y = 0f; t = t.normalized * 0.05f;
+                            rail.Quad(a - t, a + t, a + t + Vector3.up * 1.07f, a - t + Vector3.up * 1.07f, 1f, true);
+                        }
+                    }
                 }
             }
 
-            var mesh = new Mesh { name = "Verge (generated)", hideFlags = HideFlags.DontSave, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
-            mesh.SetVertices(vertices);
-            mesh.SetUVs(0, uvs);
-            mesh.SetTriangles(triangles, 0);
+            AddVergePart("Verge (generated)", ground, _vergeMaterial != null ? _vergeMaterial : _material, collider: true);   // 장식 배치 때 보이는 가장 낮은 면을 찾도록
+            if (wall.T.Count > 0) AddVergePart("RetainingWalls (generated)", wall, _retainingWallMaterial, collider: true);
+            if (hedge.T.Count > 0) AddVergePart("Hedges (generated)", hedge, _hedgeMaterial, collider: false);
+            if (rail.T.Count > 0) AddVergePart("Rails (generated)", rail, _railMaterial, collider: false);
+        }
+
+        // 짧게 끊기는 구간(석축·난간이 몇 m만 나왔다 사라지는 곳)은 없앤다
+        private static void RemoveShortRuns(bool[] flags, int minRun)
+        {
+            int i = 0;
+            while (i < flags.Length)
+            {
+                if (!flags[i]) { i++; continue; }
+                int j = i;
+                while (j < flags.Length && flags[j]) j++;
+                if (j - i < minRun) for (int k = i; k < j; k++) flags[k] = false;
+                i = j;
+            }
+        }
+
+        private void AddVergePart(string name, Strip strip, Material material, bool collider)
+        {
+            var mesh = new Mesh { name = name, hideFlags = HideFlags.DontSave, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+            mesh.SetVertices(strip.V);
+            mesh.SetUVs(0, strip.U);
+            mesh.SetTriangles(strip.T, 0);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
-            var go = new GameObject("Verge (generated)") { hideFlags = HideFlags.DontSave, layer = GrassLayer };
+            var go = new GameObject(name) { hideFlags = HideFlags.DontSave, layer = GrassLayer };
             go.transform.SetParent(transform, false);
             go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var meshRenderer = go.AddComponent<MeshRenderer>();
-            meshRenderer.sharedMaterial = _vergeMaterial != null ? _vergeMaterial : _material;
+            meshRenderer.sharedMaterial = material;
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            go.AddComponent<MeshCollider>().sharedMesh = mesh;   // 장식 배치 때 보이는 가장 낮은 면을 찾도록
+            if (collider) go.AddComponent<MeshCollider>().sharedMesh = mesh;
             _generated.Add(go);
             _generated.Add(mesh);
         }

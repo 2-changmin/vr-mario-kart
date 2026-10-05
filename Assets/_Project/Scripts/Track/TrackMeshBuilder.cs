@@ -41,6 +41,8 @@ namespace VRKart.Track
         [Tooltip("벽을 숨겼을 때 벽 자리에 보이게 둘 낮은 연석 높이(m). 0이면 없음 (콜라이더는 투명 벽이 맡음)")]
         [SerializeField, Min(0f)] private float _lowCurbHeight;
         [SerializeField] private Material _lowCurbMaterial;
+        [Tooltip("있으면 도로 가운데 이중선 (캠퍼스 도로처럼)")]
+        [SerializeField] private Material _centerLineMaterial;
         [Header("머티리얼")]
         [SerializeField] private Material _roadMaterial;
         [SerializeField] private Material _lineMaterial;
@@ -108,6 +110,14 @@ namespace VRKart.Track
             lines.Strip(samples, -half, -half + _lineWidth, 0.01f, _stripeLength * 2f, _ => true);
             lines.Strip(samples, half - _lineWidth, half, 0.01f, _stripeLength * 2f, _ => true);
             Create("Lines", RoadLayer, lines, _lineMaterial, collider: false, shadows: false);
+            if (_centerLineMaterial != null)
+            {
+                // 가운데 노란 이중선 (선 폭 Line Width, 간격 Line Width)
+                var center = new MeshData();
+                center.Strip(samples, -_lineWidth * 1.5f, -_lineWidth * 0.5f, 0.012f, _stripeLength * 2f, _ => true);
+                center.Strip(samples, _lineWidth * 0.5f, _lineWidth * 1.5f, 0.012f, _stripeLength * 2f, _ => true);
+                Create("CenterLine", RoadLayer, center, _centerLineMaterial, collider: false, shadows: false);
+            }
 
             var curbs = new MeshData();
             Func<int, bool> curved = i => samples[i].Curvature != 0f || samples[i + 1].Curvature != 0f;
