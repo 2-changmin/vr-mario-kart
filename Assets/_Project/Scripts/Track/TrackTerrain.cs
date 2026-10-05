@@ -252,6 +252,7 @@ namespace VRKart.Track
                 for (int i = 0; i < n - 1; i++)
                 {
                     int j = i + 1;
+                    if (_builder.SharedDistance(i, side) > 0f || _builder.SharedDistance(j, side) > 0f) continue;   // 다른 구간과 붙은 공유 차로 쪽
                     // 오른쪽(side +1)은 진행 방향 오른쪽이 바깥 → 감는 방향을 맞춤
                     void Face(Strip st, Vector3 a0, Vector3 a1, Vector3 b0, Vector3 b1, float uv, bool two = false)
                     {

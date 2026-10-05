@@ -16,15 +16,24 @@ namespace VRKart.Race
         public Checkpoint GetCheckpoint(int index) => Checkpoints[index];
 
         // 위치에서 가장 가까운 체크포인트 구간(i → i+1)의 수평 진행 방향
-        public Vector3 DirectionAt(Vector3 position)
+        public Vector3 DirectionAt(Vector3 position) => DirectionAt(position, -1);
+
+        // nearIndex(다음 체크포인트)가 있으면 그 앞뒤 3구간에서만 찾는다 → 같은 도로를 반대로 지나는 공유 차로(#48)에서 옆 차로 방향을 잡지 않음
+        public Vector3 DirectionAt(Vector3 position, int nearIndex)
         {
             Checkpoint[] checkpoints = Checkpoints;
             Vector3 p = Flat(position);
             Vector3 best = Vector3.forward;
             float bestDistance = float.MaxValue;
 
-            for (int i = 0; i < checkpoints.Length; i++)
+            for (int k = 0; k < checkpoints.Length; k++)
             {
+                int i = k;
+                if (nearIndex >= 0)
+                {
+                    if (k > 6) break;
+                    i = ((nearIndex - 4 + k) % checkpoints.Length + checkpoints.Length) % checkpoints.Length;
+                }
                 Vector3 a = Flat(checkpoints[i].transform.position);
                 Vector3 ab = Flat(checkpoints[(i + 1) % checkpoints.Length].transform.position) - a;
                 float t = Mathf.Clamp01(Vector3.Dot(p - a, ab) / Mathf.Max(ab.sqrMagnitude, 1e-4f));
