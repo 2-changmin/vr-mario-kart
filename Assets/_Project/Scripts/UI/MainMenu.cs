@@ -4,10 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRKart.Audio;
 using VRKart.Race;
+using VRKart.XR;
 
 namespace VRKart.UI
 {
-    // 메인 메뉴: 시작 / 설정(전체·배경음악·효과음 볼륨) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
+    // 메인 메뉴: 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
     public sealed class MainMenu : MonoBehaviour
     {
         [SerializeField] private string _raceScene = SceneLoader.TrackMain;
@@ -23,6 +24,14 @@ namespace VRKart.UI
         [SerializeField] private TMP_Text _musicValueText;
         [SerializeField] private Slider _sfxSlider;
         [SerializeField] private TMP_Text _sfxValueText;
+
+        [Header("멀미 저감 (ComfortSettings, #6)")]
+        [SerializeField] private Button _comfortButton;
+        [SerializeField] private TMP_Text _comfortText;
+        [SerializeField] private Slider _comfortSlider;
+        [SerializeField] private TMP_Text _comfortValueText;
+        [SerializeField] private Button _horizonButton;
+        [SerializeField] private TMP_Text _horizonText;
 
         [Header("배치")]
         [SerializeField, Min(0.5f)] private float _distance = 1.5f;
@@ -41,7 +50,9 @@ namespace VRKart.UI
             _volumeSlider.SetValueWithoutNotify(GameSettings.MasterVolume);
             if (_musicSlider != null) _musicSlider.SetValueWithoutNotify(AudioVolumes.Music);
             if (_sfxSlider != null) _sfxSlider.SetValueWithoutNotify(AudioVolumes.Sfx);
+            if (_comfortSlider != null) _comfortSlider.SetValueWithoutNotify(ComfortSettings.VignetteIntensity);
             UpdateVolumeText();
+            UpdateComfortText();
             _mainPanel.SetActive(false);
             _settingsPanel.SetActive(true);
         }
@@ -62,6 +73,9 @@ namespace VRKart.UI
             _volumeSlider.onValueChanged.AddListener(HandleVolumeChanged);
             if (_musicSlider != null) _musicSlider.onValueChanged.AddListener(HandleMusicChanged);
             if (_sfxSlider != null) _sfxSlider.onValueChanged.AddListener(HandleSfxChanged);
+            if (_comfortButton != null) _comfortButton.onClick.AddListener(ToggleComfort);
+            if (_comfortSlider != null) _comfortSlider.onValueChanged.AddListener(HandleComfortChanged);
+            if (_horizonButton != null) _horizonButton.onClick.AddListener(ToggleHorizon);
         }
 
         private void OnDisable()
@@ -73,6 +87,9 @@ namespace VRKart.UI
             _volumeSlider.onValueChanged.RemoveListener(HandleVolumeChanged);
             if (_musicSlider != null) _musicSlider.onValueChanged.RemoveListener(HandleMusicChanged);
             if (_sfxSlider != null) _sfxSlider.onValueChanged.RemoveListener(HandleSfxChanged);
+            if (_comfortButton != null) _comfortButton.onClick.RemoveListener(ToggleComfort);
+            if (_comfortSlider != null) _comfortSlider.onValueChanged.RemoveListener(HandleComfortChanged);
+            if (_horizonButton != null) _horizonButton.onClick.RemoveListener(ToggleHorizon);
         }
 
         private void HandleStart() => SceneLoader.Load(_raceScene);
@@ -80,6 +97,7 @@ namespace VRKart.UI
         private void HandleBack()
         {
             GameSettings.Save();
+            ComfortSettings.Save();
             ShowMain();
         }
 
@@ -109,6 +127,33 @@ namespace VRKart.UI
         }
 
         private static string Percent(Slider slider) => Mathf.RoundToInt(slider.value * 100f) + "%";
+
+        private void ToggleComfort()
+        {
+            ComfortSettings.VignetteEnabled = !ComfortSettings.VignetteEnabled;
+            UpdateComfortText();
+        }
+
+        private void ToggleHorizon()
+        {
+            ComfortSettings.HorizonLock = !ComfortSettings.HorizonLock;
+            UpdateComfortText();
+        }
+
+        private void HandleComfortChanged(float value)
+        {
+            ComfortSettings.VignetteIntensity = value;
+            UpdateComfortText();
+        }
+
+        // 멀미 저감이 꺼져 있으면 강도 슬라이더도 비활성
+        private void UpdateComfortText()
+        {
+            if (_comfortText != null) _comfortText.text = ComfortSettings.VignetteEnabled ? "켬" : "끔";
+            if (_horizonText != null) _horizonText.text = ComfortSettings.HorizonLock ? "켬" : "끔";
+            if (_comfortSlider != null) _comfortSlider.interactable = ComfortSettings.VignetteEnabled;
+            if (_comfortValueText != null && _comfortSlider != null) _comfortValueText.text = Percent(_comfortSlider);
+        }
 
         private void HandleQuit()
         {
