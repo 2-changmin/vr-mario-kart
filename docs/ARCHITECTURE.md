@@ -388,9 +388,10 @@ namespace VRKart.Core
 - `TrackMeshBuilder`: `Center Line Material`(있으면 도로 가운데 이중선). **`Shared Lane Distance`**(0보다 크면 다른 구간 중심선이 이 거리 안에서 나란히 지나가는 쪽을 한 도로로 붙임: 그쪽 갓길·벽·연석·낮은 연석·비탈 없음, 도로 가장자리 = 두 중심선 한가운데·두 높이 평균, 그 자리에 노란 선 + 투명 벽 `LaneDivider`). `SharedDistance(sample, side)`로 다른 컴포넌트(TrackTerrain 비탈, 장식 배치)가 공유 쪽을 알 수 있음. 기본값 0 → `Track_Main`·`Track_Test` 변화 없음.
 - `RaceTrack.DirectionAt(position, nearIndex)`: 역주행 판정 방향을 다음 체크포인트 앞뒤 구간에서만 찾음 → 공유 도로에서 옆 차로 방향을 잡지 않음(`RaceProgress`가 사용).
 - **텍스처**(ambientCG CC0, `Assets/ThirdParty/AmbientCG/`, 색상 1024px + 노멀 512px, 합계 1.2MB): 아스팔트 `Campus_Road`(Road012A), 붉은·회색 보도블록(PavingStones128, 색 입힘), 석축(Bricks100), 콘크리트(Concrete031: 바닥·비탈·계단·연석), 건물 외벽 회반죽(Plaster002, 색별), 기숙사 붉은 벽돌(Bricks085). 서킷의 `Track_*` 재질은 그대로.
+- **건물 외벽 사진 텍스처**(ambientCG Facade CC0 5종, 색상 1024px + 노멀 256px, 합계 약 0.9MB, 재질 `Campus_FacadeTex_*`): 캠퍼스 흰 건물·고층 = Facade006(흰 격자), 연회색·라벤더 = Facade019A(회색 콘크리트 격자), 기숙사 붉은 벽돌·동네 상가 일부 = Facade018A, 아파트·상가 일부 = Facade020A(갈색 격자), 동네 8층 이상·일부 = Facade001(유리 커튼월). 텍스처 한 장 = 6~10층으로 UV를 맞춰 창문 줄이 층과 맞음(v = (높이 - 1층 바닥) / (층수 × 층 높이)). 텍스처를 쓰는 건물은 예전 창문 띠 상자를 만들지 않음. 동네 상가 일부는 예전 단색 + 창문 띠(색 다양성), 체육관은 그대로. 3층 이상 건물 옥상에 콘크리트 난간(0.9m).
 - **성능**(운전자 시점 추정, `ChunkCombiner` 적용 후): 그리기 호출 최대 약 720 / 평균 약 300(서킷 최대 약 990), 삼각형 최대 약 25만. 주차된 차 17대·출발선 칸도 `ChunkCombiner`. 실기기 프레임은 #15에서 확인 필요.
 - 머티리얼 `Materials/Environment/Campus_*`(URP Lit): Building·Window·Sign·White·Stone·Hedge·Granite·Concrete·Paving·PaintYellow·RoofGray·RoofGreen·RoofBlue·Turf·TrackRed·Dirt·ForestGround·Ground·Curb·CourtBlue·Asphalt·DarkLeaf_*.
-- **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스 + 재질·배치·분위기·캠퍼스 밖 거리): 전원 완주(312.5s ~ 346.8s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
+- **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스 + 재질·배치·분위기·캠퍼스 밖 거리): 전원 완주(309.1s ~ 336.4s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
 - 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).
 
 ## 체크포인트 & 랩 규칙
