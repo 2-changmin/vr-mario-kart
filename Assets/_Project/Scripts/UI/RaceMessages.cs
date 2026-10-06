@@ -2,10 +2,12 @@ using TMPro;
 using UnityEngine;
 using VRKart.Core;
 using VRKart.Race;
+using VRKart.TimeAttack;
 
 namespace VRKart.UI
 {
     // 시야 가운데(±15°)에 잠깐 띄우는 메시지: 카운트다운, 랩 완료·마지막 랩, 역주행 경고.
+    // 타임어택(#47)에서는 랩 완료 메시지에 최고 기록 주행(고스트)과의 차이를 붙인다 (빠르면 파랑 -, 느리면 주황 +).
     // 게임 시간(Time.deltaTime) 기준이라 일시정지하면 메시지도 멈춘다.
     public sealed class RaceMessages : MonoBehaviour
     {
@@ -73,6 +75,9 @@ namespace VRKart.UI
             if (!ReferenceEquals(participant, _player) || lap >= _player.TotalLaps) return;
 
             string text = $"{lap}랩  {TimeFormat.Format(lapTime)}";
+            TimeAttackSession timeAttack = TimeAttackSession.Current;
+            if (timeAttack != null && timeAttack.TryGetSplitDelta(lap, _raceManager.RaceTime, out float delta))
+                text += delta < 0f ? $"  <color=#4DB8FF>-{-delta:0.00}</color>" : $"  <color=#FF9933>+{delta:0.00}</color>";
             if (lap == _player.TotalLaps - 1) text += "\n<color=#FFC933>마지막 랩!</color>";
             _popupText.text = text;
             _popupText.enabled = true;

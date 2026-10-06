@@ -5,10 +5,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRKart.Core;
 using VRKart.Race;
+using VRKart.TimeAttack;
 
 namespace VRKart.UI
 {
     // 플레이어가 완주하면 플레이어 앞(기본 1.5m)에 결과를 띄운다. 배치 방식은 PlayerSpace 참고.
+    // 타임어택(#47)이면 랩 기록 위에 "신기록!" 또는 이전 최고 기록을 붙인다.
     public sealed class ResultScreen : MonoBehaviour
     {
         [SerializeField] private RaceManager _raceManager;
@@ -53,6 +55,16 @@ namespace VRKart.UI
             RaceResult player = _raceManager.Player != null ? _raceManager.GetResult(_raceManager.Player) : null;
             _totalTimeText.text = player != null && player.IsFinished ? TimeFormat.Format(player.TotalTime) : "--:--.---";
             _lapTimesText.text = player != null ? BuildLapTimes(player.LapTimes) : string.Empty;
+
+            // 전체 기록 칸은 옆에 붙일 자리가 없어 랩 기록 첫 줄에 쓴다
+            TimeAttackSession timeAttack = TimeAttackSession.Current;
+            if (timeAttack != null && player != null && player.IsFinished)
+            {
+                string record = timeAttack.IsNewRecord
+                    ? "<color=#FFC933>신기록!</color>"
+                    : $"이전 최고   {TimeFormat.Format(timeAttack.BestTotal)}";
+                _lapTimesText.text = record + "\n" + _lapTimesText.text;
+            }
         }
 
         private void Awake()
