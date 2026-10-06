@@ -33,6 +33,8 @@ namespace VRKart.Track
         [SerializeField, Min(0f)] private float _vergeWidth;
         [Tooltip("비탈 머티리얼 (비우면 지형과 같음)")]
         [SerializeField] private Material _vergeMaterial;
+        [Tooltip("평평하게 깎을 구역: 볼록 사각형 4점씩(y = 그 꼭짓점의 지형 높이). 트랙 밖에 넓은 도로·강가처럼 평평한 곳을 만들 때. 이 안에서는 비탈도 만들지 않는다")]
+        [SerializeField] private Vector3[] _flatQuads = System.Array.Empty<Vector3>();
         [Tooltip("있으면 지형이 도로보다 Wall Min Height 넘게 높은 곳의 비탈을 수직 석축으로 (산비탈 캠퍼스 도로)")]
         [SerializeField] private Material _retainingWallMaterial;
         [SerializeField, Min(0.3f)] private float _wallMinHeight = 1.2f;
@@ -111,6 +113,7 @@ namespace VRKart.Track
             // 트랙 높이를 거리 가중 평균으로 섞은 자연 지형 높이 (벽 바깥 기준)
             float Natural(float qx, float qz, out float near, out float nearHeight)
             {
+                if (FlatHeight(qx, qz, out float flat)) { near = float.MaxValue; nearHeight = flat; return flat; }
                 float weightSum = 0f, heightSum = 0f, nearest2 = float.MaxValue;
                 nearHeight = 0f;
                 foreach (Vector3 p in points)
@@ -139,7 +142,7 @@ namespace VRKart.Track
                     float px = min.x + x * _cellSize, pz = min.y + z * _cellSize;
                     float height = Natural(px, pz, out float nearest, out float nearestHeight);
                     // 도로·갓길(·비탈) 아래: 위에 덮이는 면보다 낮게
-                    if (nearest < hidden)
+                    if (nearest < hidden && nearest < float.MaxValue)
                         height = _vergeWidth > 0f ? Mathf.Min(height, nearestHeight - _roadClearance) - 1f : nearestHeight - _roadClearance;
                     vertices[z * nx + x] = new Vector3(px, height, pz);
                     uvs[z * nx + x] = new Vector2(px, pz) * _uvScale;
@@ -182,6 +185,33 @@ namespace VRKart.Track
             _generated.Add(mesh);
 
             if (_vergeWidth > 0f) BuildVerge(samples, shoulder, (qx, qz) => Natural(qx, qz, out _, out _));
+        }
+
+        // (x, z)가 평평한 구역 안이면 그 높이 (사각형을 삼각형 둘로 나눠 무게중심 보간)
+        public bool FlatHeight(float x, float z, out float height)
+        {
+            height = 0f;
+            for (int i = 0; i + 3 < _flatQuads.Length; i += 4)
+            {
+                Vector3 a = _flatQuads[i], b = _flatQuads[i + 1], c = _flatQuads[i + 2], d = _flatQuads[i + 3];
+                if (x < Mathf.Min(Mathf.Min(a.x, b.x), Mathf.Min(c.x, d.x)) || x > Mathf.Max(Mathf.Max(a.x, b.x), Mathf.Max(c.x, d.x)) ||
+                    z < Mathf.Min(Mathf.Min(a.z, b.z), Mathf.Min(c.z, d.z)) || z > Mathf.Max(Mathf.Max(a.z, b.z), Mathf.Max(c.z, d.z))) continue;
+                if (InTriangle(x, z, a, b, c, out height) || InTriangle(x, z, a, c, d, out height)) return true;
+            }
+            return false;
+        }
+
+        private static bool InTriangle(float x, float z, Vector3 a, Vector3 b, Vector3 c, out float height)
+        {
+            height = 0f;
+            float det = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z);
+            if (Mathf.Abs(det) < 1e-6f) return false;
+            float l1 = ((b.z - c.z) * (x - c.x) + (c.x - b.x) * (z - c.z)) / det;
+            float l2 = ((c.z - a.z) * (x - c.x) + (a.x - c.x) * (z - c.z)) / det;
+            float l3 = 1f - l1 - l2;
+            if (l1 < -1e-4f || l2 < -1e-4f || l3 < -1e-4f) return false;
+            height = l1 * a.y + l2 * b.y + l3 * c.y;
+            return true;
         }
 
         // 비탈 메시 조립 도우미 (머티리얼마다 하나)
@@ -253,6 +283,7 @@ namespace VRKart.Track
                 {
                     int j = i + 1;
                     if (_builder.SharedDistance(i, side) > 0f || _builder.SharedDistance(j, side) > 0f) continue;   // 다른 구간과 붙은 공유 차로 쪽
+                    if (FlatHeight(p2[i].x, p2[i].z, out _) || FlatHeight(p2[j].x, p2[j].z, out _)) continue;           // 평평한 구역(넓은 도로 등) 쪽
                     // 오른쪽(side +1)은 진행 방향 오른쪽이 바깥 → 감는 방향을 맞춤
                     void Face(Strip st, Vector3 a0, Vector3 a1, Vector3 b0, Vector3 b1, float uv, bool two = false)
                     {

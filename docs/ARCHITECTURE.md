@@ -281,7 +281,8 @@ namespace VRKart.Core
 | `Props/Track_JumpRamp` | 점프대 (경사 7°, 높이 약 1.1m) |
 | `Campus/Ambience` | 길가 소품(캠퍼스 도로 30m마다: 벤치 26 · 자전거 거치대 5 · 자판기 5)과 저폴리 학생 34명(광장·코트·정문 위·횡단보도 근처 무리, 벤치에 앉은 사람). 상자를 머티리얼별로 합친 메시 |
 | `Campus/Mountains`, `Campus/River` | 먼 배경: 트랙 중심에서 480~810m 둘레 산 능선(북동쪽 승학산 쪽 최고 약 190m, 양면 `Campus_Mountain`), 서쪽 낙동강 하구 물(`Campus_River`). 안개 200~1,000m. `CameraFarClip`(새 컴포넌트)이 메인 카메라 먼 거리를 1,600m로 늘려 산이 잘리지 않게 |
-| `Campus/Stub_WestRight`, `Campus/Stub_SouthJunction` | **갈 수는 없는 갈림길(모양만)**: 서쪽 모서리의 우회전 길(20m), 출발 직전 교차로에서 남쪽으로 이어지는 길(34m). 도로·보도·노란 선·연석 + 입구에 콘·바리케이드, 트랙 투명 벽이 막음 |
+| `Campus/Stub_SouthJunction` | **갈 수는 없는 갈림길(모양만)**: 출발 직전 교차로에서 남쪽으로 이어지는 길(34m). 도로·보도·노란 선·연석 + 입구에 콘·바리케이드, 트랙 투명 벽이 막음 |
+| `Campus/NakdongDaero` | **낙동대로**(사진 cp56·cp60→61, 2026-10-06 2차): 트랙 낙동대로 구간(cp57~62) 남서쪽을 건물로 막지 않고 **뚫리게** — 트랙 오른쪽 벽 자리에 흰 **중앙 분리대 울타리**, 그 너머 반대 차로(흰 차선 점선 2줄, 파란 버스 차로 선), 건너편 연석·보도·보행자 난간·은행나무·가로등, 그 뒤 잔디 둑과 **강**(폭 약 50m). cp57 교차로에서 **북서쪽으로 이어지는 낙동대로를 같은 폭으로 70m 이어 그린 뒤** 콘·바리케이드로 막음(남동쪽 끝 40m도 같게), 교차로·남동 끝에 노란 테두리 횡단보도. 트랙 구간의 노란 중앙선은 흰 차선 점선으로 덮음(한 방향 차로). 이 구역의 OSM 건물은 세우지 않음 |
 | `Campus/JunctionTree` | 출발 직전 갈림길 가운데 **비스듬히 자란 소나무**(로드뷰 cp63, 원기둥 줄기 4마디 + 납작한 솔잎 덩어리 8개, 화단 섬, 캡슐 콜라이더 반지름 1.1m, Wall 레이어). AI 웨이포인트는 섬 앞뒤 20m를 진행 방향 오른쪽으로 최대 3.4m 비킴 |
 | `Campus/OffCampusStreets` | **캠퍼스 밖 고리 로드뷰 반영**(2026-10-06 사진 3장): 골목(캠퍼스 → cp56 교차로, 오르막 → 갈림길) = **회색 블록 포장**(`Campus_Block`, PavingStones128 회색, 블록 약 20cm) + 노란 가장자리 선(중앙선 없음), cp56 쪽 보도는 회색 타일. **낙동대로 구간**(cp57~60) = 바깥쪽 갓길까지 아스팔트 차로 + 흰 차선 점선 + 파란 버스 차로 선 + 주황 차로 분리봉, 건물 쪽 보행자 난간·은행나무(`Campus_Ginkgo`)·쌍가로등. 노란 테두리 횡단보도 3곳(cp56 교차로, 오르막 입구, 갈림길 앞), 골목 전봇대에 노랑·검정 줄무늬 띠(`Textures/Campus/Campus_StripeYB.png`, 코드로 만든 64px), 갈림길 앞 우회전 금지·일방통행 표지. 캠퍼스 밖 동네 건물 중 트랙 30m 안 벽에 세로 간판·1층 차양. 길 위에 3~5cm 띄운 보이기만 하는 메시(주행·콜라이더는 원래 도로) |
 | `Environment/Ground_Grass` | 트랙 밖 넓은 바닥 (`Grass`) |
@@ -383,12 +384,13 @@ namespace VRKart.Core
 - **`TrackTerrain`**(새 컴포넌트, `[ExecuteAlways]`, 씬에 저장 안 함): 트랙 둘레 80m까지 4m 격자 지형(버텍스 약 1.4만, Grass 레이어, 메시 콜라이더). 격자 점 높이 = 트랙 높이 거리 가중 평균, 도로·갓길 아래는 도로보다 0.4m 낮게, 벽 바깥은 1m당 0.5m까지만 벗어남, 가장자리 50m에서 `Edge Height`(-7m)로 내려감. 높낮이가 큰 트랙에서 흙 둑(`Embankments`) 대신 씁니다. **`Verge Width`**(비탈 폭)를 주면 갓길 가장자리(도로 높이)에서 자연 지형 높이까지 비탈 + 바깥 끝 치마(틈 가림)를 만들고, 그 아래 격자 지형은 낮춥니다. 두 갈래 길처럼 다른 구간이 가까운 곳은 비탈 폭을 줄여 겹치지 않게 합니다.
 - `TrackMeshBuilder` 옵션(기본값은 기존과 같음 → `Track_Main`·`Track_Test` 변화 없음): `Build Embankments`(흙 둑), **`Walls Visible`**(끄면 벽은 콜라이더만 = 투명 벽), **`Build Curbs`**(빨강/흰 연석), **`Low Curb Height`·`Low Curb Material`**(벽을 숨겼을 때 벽 자리에 보이는 낮은 연석, 콜라이더 없음). `ShoulderEdge` 속성 추가.
 - `TrackTerrain`: `Verge Material`(비탈만 다른 머티리얼), 비탈에도 메시 콜라이더(Grass 레이어, 장식 배치용 — 투명 벽 바깥이라 카트는 닿지 않음). `Retaining Wall Material`·`Wall Min/Max Height`(오르막 쪽 석축), `Hedge Material`(석축 위 산울타리), `Rail Material`(내리막 쪽 난간) — 몇 m만 나왔다 사라지는 짧은 구간은 없앰.
+- `TrackTerrain` **`Flat Quads`**: 볼록 사각형(4점씩, y = 지형 높이) 안은 지형을 그 높이로 평평하게 하고 비탈을 만들지 않음 — 낙동대로·강가 구역용. `FlatHeight(x, z, out h)` 공개.
 - `TrackMeshBuilder`: `Center Line Material`(있으면 도로 가운데 이중선). **`Shared Lane Distance`**(0보다 크면 다른 구간 중심선이 이 거리 안에서 나란히 지나가는 쪽을 한 도로로 붙임: 그쪽 갓길·벽·연석·낮은 연석·비탈 없음, 도로 가장자리 = 두 중심선 한가운데·두 높이 평균, 그 자리에 노란 선 + 투명 벽 `LaneDivider`). `SharedDistance(sample, side)`로 다른 컴포넌트(TrackTerrain 비탈, 장식 배치)가 공유 쪽을 알 수 있음. 기본값 0 → `Track_Main`·`Track_Test` 변화 없음.
 - `RaceTrack.DirectionAt(position, nearIndex)`: 역주행 판정 방향을 다음 체크포인트 앞뒤 구간에서만 찾음 → 공유 도로에서 옆 차로 방향을 잡지 않음(`RaceProgress`가 사용).
 - **텍스처**(ambientCG CC0, `Assets/ThirdParty/AmbientCG/`, 색상 1024px + 노멀 512px, 합계 1.2MB): 아스팔트 `Campus_Road`(Road012A), 붉은·회색 보도블록(PavingStones128, 색 입힘), 석축(Bricks100), 콘크리트(Concrete031: 바닥·비탈·계단·연석), 건물 외벽 회반죽(Plaster002, 색별), 기숙사 붉은 벽돌(Bricks085). 서킷의 `Track_*` 재질은 그대로.
 - **성능**(운전자 시점 추정, `ChunkCombiner` 적용 후): 그리기 호출 최대 약 720 / 평균 약 300(서킷 최대 약 990), 삼각형 최대 약 25만. 주차된 차 17대·출발선 칸도 `ChunkCombiner`. 실기기 프레임은 #15에서 확인 필요.
 - 머티리얼 `Materials/Environment/Campus_*`(URP Lit): Building·Window·Sign·White·Stone·Hedge·Granite·Concrete·Paving·PaintYellow·RoofGray·RoofGreen·RoofBlue·Turf·TrackRed·Dirt·ForestGround·Ground·Curb·CourtBlue·Asphalt·DarkLeaf_*.
-- **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스 + 재질·배치·분위기·캠퍼스 밖 거리): 전원 완주(309.4s ~ 340.2s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
+- **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스 + 재질·배치·분위기·캠퍼스 밖 거리): 전원 완주(312.5s ~ 346.8s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
 - 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).
 
 ## 체크포인트 & 랩 규칙
