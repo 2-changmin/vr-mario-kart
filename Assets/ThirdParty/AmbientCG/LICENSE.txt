@@ -1,0 +1,5 @@
+ambientCG (https://ambientcg.com) — CC0 1.0 Universal (Public Domain)
+"Contains assets from ambientCG.com, licensed under CC0 1.0 Universal."
+Downloaded 2026-10-06, 1K-JPG, only Color + NormalGL kept:
+Road012A, PavingStones128, Bricks100, Concrete031, Plaster002, Bricks085
+Color 1024px, NormalGL 512px로 줄임(JPG 품질 85)
