@@ -279,6 +279,8 @@ namespace VRKart.Core
 | `Props/Track_StartLine` | 체크무늬 출발선 (콜라이더 없음) |
 | `Props/Track_StartGrid` | 출발 위치 `StartPos_1`~`StartPos_4`. **1번 = 플레이어, 2~4번 = AI**. 출발선 뒤쪽으로 2열 엇갈려 배치 |
 | `Props/Track_JumpRamp` | 점프대 (경사 7°, 높이 약 1.1m) |
+| `Campus/Ambience` | 길가 소품(캠퍼스 도로 30m마다: 벤치 26 · 자전거 거치대 5 · 자판기 5)과 저폴리 학생 34명(광장·코트·정문 위·횡단보도 근처 무리, 벤치에 앉은 사람). 상자를 머티리얼별로 합친 메시 |
+| `Campus/Mountains`, `Campus/River` | 먼 배경: 트랙 중심에서 480~810m 둘레 산 능선(북동쪽 승학산 쪽 최고 약 190m, 양면 `Campus_Mountain`), 서쪽 낙동강 하구 물(`Campus_River`). 안개 200~1,000m. `CameraFarClip`(새 컴포넌트)이 메인 카메라 먼 거리를 1,600m로 늘려 산이 잘리지 않게 |
 | `Environment/Ground_Grass` | 트랙 밖 넓은 바닥 (`Grass`) |
 | `RaceTrack/Checkpoint_00~15` | 체크포인트 16개 (약 55m 간격). `00` = 결승선. 아래 [체크포인트 & 랩 규칙](#체크포인트--랩-규칙) |
 | `KillZone` | 바닥 아래(y -20 ~ -10) 넓은 트리거. 떨어진 카트를 마지막 체크포인트로 리스폰 |
@@ -309,7 +311,7 @@ namespace VRKart.Core
 | `Environment/Scenery` | Kenney 모델 장식 (약 830개, 모두 Static): 결승선 게이트, 관중석 10, 피트 6, 조명탑, 깃발, 코너 배너 탑, 광고판, 텐트, 나무 320, 바위, 덤불, 꽃, 풀, 통나무. 모두 벽에서 떨어져 있어 주행에 닿지 않습니다 |
 | `RaceTrack/Checkpoint_00~40` | 체크포인트 41개 (약 25m 간격, 버튼으로 배치) |
 | `Props/ItemBoxes` | 아이템 박스 3줄 × 4개(2.5m 간격): 메인 직선 110m, 2번째 90° 뒤 직선 445m, 뒷 직선 870m (출발점 기준 중심선 거리) |
-| `Props/DashPads` | 대시 패드 4개: 1번 코너 뒤 238m, 헤어핀 탈출 615m, 뒷 직선 915m(좌우 ±2.5m 두 개). 헤어핀·급커브 **직전에는 두지 않음** |
+| `Props/DashPads` | 150m 13% 오르막 직선 가운데, 422m 공유 도로 오르막 차로, **1,588m 결승 직전 직선 좌우 2개**(마지막 추월) — 경사에 맞춰 기울임 |
 | `AIPath/WP_000~171` | AI 웨이포인트 172개 (약 6m 간격, 버튼으로 배치) |
 | `KillZone` | 바닥 아래 1300m x 1300m |
 
@@ -369,8 +371,8 @@ namespace VRKart.Core
 | `Campus/MainGate` | **정문**(로드뷰·정문 사진 참고): 출발 직선이 동쪽으로 꺾이는 코너 바깥(74m 옆, 캠퍼스 = 북쪽 길가). 석축 옹벽(폭 36m, 높이 +7.2m) 가운데 넓은 계단 25단, 계단 왼쪽 콘크리트 기둥(11m), 옹벽 위 산울타리·나무, 오른쪽 옹벽의 주차장 입구, 계단 위 `동아대학교 승학캠퍼스` 현수막, 위 광장의 흰 기둥 조형물(세로 `동아대학교`) |
 | `Campus/GateStreet` | **정문 앞 도로**(정문 앞뒤: 출발 직선 ~ 코너 ~ 정문 지나 60m): 빨강/흰 연석을 도로색으로 덮고, 가장자리 노란 선, 갓길 = 보도블록, 벽 = 석재 마감, 계단 동쪽(88m)에 횡단보도. 보이기만 하는 상자를 머티리얼별로 합친 메시 5개(콜라이더 없음 → 주행·갓길 감속은 그대로) |
 | `Campus/Pavement` | **위성사진처럼**: 지형 중 트랙 옆(갓길 끝 +8m) 또는 건물·시설 바로 주변(+6m) 삼각형을 5cm 위에 콘크리트 포장(`Campus_Ground`)으로 덮은 메시(약 1.1만 삼각형, 씬에 저장). 나머지(건물 사이 골짜기·바깥 산)는 짙은 숲색(`Campus_ForestGround`). 캠퍼스 건물 옥상에 계단실·설비 상자 3개씩 |
-| `Environment/Scenery/Trees` | 가로수 외 캠퍼스 조경수 20그루(활엽수) + 숲 650그루(침엽수, 잎을 짙게 한 `Campus_DarkLeaf_*` 머티리얼 — 위성사진의 짙은 숲). 트랙 13.75m 안·건물·주택가에는 심지 않음 |
-| `Props/ItemBoxes` | 3줄: 205m(오르막 6%), 450m(꼭대기 앞), 870m(내리막) |
+| `Environment/Scenery/Trees` | **`ChunkCombiner`**(실행할 때 100m 칸 × 머티리얼로 합침, 그림자 없음). 가로수 외 캠퍼스 조경수 20그루(활엽수) + 숲 500그루(침엽수, 잎을 짙게 한 `Campus_DarkLeaf_*` 머티리얼 — 위성사진의 짙은 숲). 트랙 13.75m 안·건물·주택가에는 심지 않음 |
+| `Props/ItemBoxes` | 3줄(레이스 재미): 257m 첫 오르막 뒤 평지 직선, 935m 공유 도로를 내려온 뒤 직선, **1,190m 인문대 헤어핀 진입 45m 전** |
 | `Props/DashPads` | 오르막 직선에서 가장 가파른 곳 132m(14.5%)·363m(9.2%), 평평한 직선 923m(좌우 2개) — 경사에 맞춰 기울임 |
 | `Environment/Ground_Grass` | y -7.55, 1,370m 사방 (지형 가장자리 아래) / `KillZone` y -25 |
 
@@ -379,8 +381,10 @@ namespace VRKart.Core
 - `TrackTerrain`: `Verge Material`(비탈만 다른 머티리얼), 비탈에도 메시 콜라이더(Grass 레이어, 장식 배치용 — 투명 벽 바깥이라 카트는 닿지 않음). `Retaining Wall Material`·`Wall Min/Max Height`(오르막 쪽 석축), `Hedge Material`(석축 위 산울타리), `Rail Material`(내리막 쪽 난간) — 몇 m만 나왔다 사라지는 짧은 구간은 없앰.
 - `TrackMeshBuilder`: `Center Line Material`(있으면 도로 가운데 이중선). **`Shared Lane Distance`**(0보다 크면 다른 구간 중심선이 이 거리 안에서 나란히 지나가는 쪽을 한 도로로 붙임: 그쪽 갓길·벽·연석·낮은 연석·비탈 없음, 도로 가장자리 = 두 중심선 한가운데·두 높이 평균, 그 자리에 노란 선 + 투명 벽 `LaneDivider`). `SharedDistance(sample, side)`로 다른 컴포넌트(TrackTerrain 비탈, 장식 배치)가 공유 쪽을 알 수 있음. 기본값 0 → `Track_Main`·`Track_Test` 변화 없음.
 - `RaceTrack.DirectionAt(position, nearIndex)`: 역주행 판정 방향을 다음 체크포인트 앞뒤 구간에서만 찾음 → 공유 도로에서 옆 차로 방향을 잡지 않음(`RaceProgress`가 사용).
+- **텍스처**(ambientCG CC0, `Assets/ThirdParty/AmbientCG/`, 색상 1024px + 노멀 512px, 합계 1.2MB): 아스팔트 `Campus_Road`(Road012A), 붉은·회색 보도블록(PavingStones128, 색 입힘), 석축(Bricks100), 콘크리트(Concrete031: 바닥·비탈·계단·연석), 건물 외벽 회반죽(Plaster002, 색별), 기숙사 붉은 벽돌(Bricks085). 서킷의 `Track_*` 재질은 그대로.
+- **성능**(운전자 시점 추정, `ChunkCombiner` 적용 후): 그리기 호출 최대 약 720 / 평균 약 300(서킷 최대 약 990), 삼각형 최대 약 25만. 주차된 차 17대·출발선 칸도 `ChunkCombiner`. 실기기 프레임은 #15에서 확인 필요.
 - 머티리얼 `Materials/Environment/Campus_*`(URP Lit): Building·Window·Sign·White·Stone·Hedge·Granite·Concrete·Paving·PaintYellow·RoofGray·RoofGreen·RoofBlue·Turf·TrackRed·Dirt·ForestGround·Ground·Curb·CourtBlue·Asphalt·DarkLeaf_*.
-- **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스): 전원 완주(299.6s ~ 323.9s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
+- **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스 + 재질·배치·분위기): 전원 완주(297.3s ~ 324.6s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
 - 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).
 
 ## 체크포인트 & 랩 규칙
