@@ -119,6 +119,8 @@ Asset Store 에셋은 무료라도 **Standard Unity Asset Store EULA**가 적용
 Assets/
 ├─ _Project/          # 우리가 만든 것 + 외부 에셋을 가공해서 만든 프리팹/머티리얼
 └─ ThirdParty/
+   ├─ Khronos/
+   │  └─ CarConcept/  # CC BY 4.0 — README.md에 출처·변경 내용
    ├─ Kenney/
    │  ├─ CarKit/      # 실제 쓰는 모델만
    │  └─ RacingKit/
@@ -137,7 +139,7 @@ Assets/
 
 | 종류 | 포맷 | 기준 |
 | --- | --- | --- |
-| 3D 모델 | **FBX** (Kenney/Quaternius가 제공) | GLB/GLTF는 추가 패키지가 필요하고 LFS 설정에 없으므로 쓰지 않음 |
+| 3D 모델 | **FBX** (Kenney/Quaternius가 제공) | GLB/GLTF는 추가 패키지가 필요하고 LFS 설정에 없으므로 그대로 넣지 않음. 꼭 필요하면 에디터 스크립트로 Unity 메시·머티리얼로 변환해서 넣음(예: Car Concept) |
 | 텍스처 | PNG / JPG | **최대 2K**, 대부분 1K 이하. Import 설정에서 Android ASTC 압축 |
 | HDRI | HDR / EXR | 2K 이하 |
 | 효과음 | WAV (짧은 것) / OGG | Load Type: 짧은 SFX는 Decompress On Load |
@@ -158,7 +160,8 @@ Assets/
 | Racing Kit 2.0 — 모델 18종 + 텍스처 2장 (`overheadLights`, `grandStand(Covered)`, `pitsGarage`, `pitsOffice`, `lightPostLarge`, `bannerTowerRed/Green`, `flagCheckers/Red/Green`, `billboard(Low)`, `tent(Long)`, `pylon`, `treeLarge/Small`, `Textures/checkers.png`·`tankco.png`) | https://kenney.nl/assets/racing-kit | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/RacingKit/` | `Track_Main` 장식 (결승선 게이트, 관중석, 피트, 조명탑, 깃발, 광고판, 텐트) | 윤승희 / #8 메인 트랙 PR |
 | Nature Kit 2.1 — 모델 17종 (`tree_default/oak/cone/pineDefaultA/fat`, `rock_largeA/C/D`, `rock_tallA`, `plant_bush(Detailed)`, `flower_red/yellow/purpleA`, `grass_large`, `stump_round`, `log`) | https://kenney.nl/assets/nature-kit | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/NatureKit/` | `Track_Main` 주변 자연물. Quaternius Ultimate Nature 대신 사용(구글 드라이브로만 받을 수 있고, Racing Kit과 스타일이 같음) | 윤승희 / #8 메인 트랙 PR |
 | Kloofendal 48d Partly Cloudy (Pure Sky) HDRI 2K | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | CC0 | `Assets/ThirdParty/PolyHaven/` (큐브맵으로 임포트) | `Track_Main` 하늘 (`Materials/Environment/Sky_PartlyCloudy.mat`) | 윤승희 / #8 메인 트랙 PR |
-| Car Kit 3.1 — 모델 2종 (`sedan-sports`, `hatchback-sports`) + `Textures/colormap.png` | https://kenney.nl/assets/car-kit | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/CarKit/` | 플레이어 차 외형(그림자 전용), AI 차량 3대(`Kart_AI_*`). 리버리 텍스처 `_Project/Textures/Cars/Car_Livery_*.png`는 colormap에서 차체 색 칸만 바꿔 직접 만든 것 | 윤승희 / #40 차량 비주얼 PR |
+| Car Kit 3.1 — 모델 2종 (`sedan-sports`, `hatchback-sports`) + `Textures/colormap.png` | https://kenney.nl/assets/car-kit | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/CarKit/` | `Track_Campus` 주차된 차. (#40 차량 업그레이드 전에는 플레이어 차 외형·AI 차량 3대 — 리버리 텍스처 `_Project/Textures/Cars/Car_Livery_*.png`는 colormap에서 차체 색 칸만 바꿔 직접 만든 것) | 윤승희 / #40 차량 비주얼 PR |
+| **Car Concept** — 차 1대(실내 포함). GLB를 에디터 스크립트로 변환해서 쓰는 머티리얼 13개·텍스처 4장만 남김, **Khronos·3D Commerce 로고(상표)가 있는 텍스처·번호판은 넣지 않음**, 메시는 합치고 간소화해서 `_Project/Models/CarConcept/CarConcept_Game.asset` | https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept | **CC BY 4.0** (크레딧 필수, `README.md` 동봉) | `Assets/ThirdParty/Khronos/CarConcept/` | 플레이어 조종석 실내·외형, AI 차량 3대(`Kart_AI_*`) | 윤승희 / #40 차량 업그레이드 PR |
 | Interface Sounds — 9개 (`click_002`, `bong_001`, `confirmation_001/002/004`, `maximize_003`, `select_005`, `pluck_001/002`) | https://kenney.nl/assets/interface-sounds | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/InterfaceSounds/` | 메뉴 클릭, 카운트다운, 랩·마지막 랩·완주, 아이템 획득, 쉘 발사, 드리프트 충전 단계 | 윤승희 / #14 사운드 PR, 마무리 PR |
 | Impact Sounds — 7개 (`impactMetal_heavy_000~002`, `impactPlate_medium_000/001`, `impactSoft_medium_001`, `impactPunch_heavy_001`) | https://kenney.nl/assets/impact-sounds | CC0 (`License.txt` 동봉) | `Assets/ThirdParty/Kenney/ImpactSounds/` | 벽 충돌, 카트끼리 충돌, 바나나 놓기, 스핀아웃 피격 | 윤승희 / #14 사운드 PR, 마무리 PR |
 | (직접 제작) 타이어 소리·부스트 소리, 아이템 아이콘 3개, 파티클 점 텍스처 | 코드로 합성/그림 | 자체 | `Assets/_Project/Audio/Kart/`, `Textures/UI/Item_*.png`, `VFX/VFX_SoftDot.png` | 드리프트·부스트 소리, HUD 아이템 칸, 드리프트·부스트 불꽃 | 윤승희 / 마무리 PR |
@@ -181,6 +184,7 @@ CC0는 표기 의무가 없지만 예의상, **CC-BY는 의무로** 발표 자�
 | HDRI / 텍스처 | Poly Haven, ambientCG | CC0 | Textures from ambientCG.com |
 | 한글 폰트 | Pretendard (orioncactus) | SIL OFL 1.1 | Pretendard © Kil Hyung-jin |
 | 캠퍼스 트랙 지도·표고 데이터 | OpenStreetMap 기여자, NASA SRTM, NASA·METI ASTER GDEM | ODbL / 퍼블릭 도메인 | © OpenStreetMap contributors · Elevation: SRTM, ASTER GDEM |
+| **차 3D 모델 "Car Concept"** | Eric Chadwick (Darmstadt Graphics Group GmbH), Khronos glTF Sample Assets | **CC BY 4.0** (변경: 간소화·로고 제거) | "Car Concept" by Eric Chadwick (Darmstadt Graphics Group GmbH), CC BY 4.0 — modified |
 | _(CC-BY 에셋을 쓰면 여기에 필수 기록)_ | | | |
 
 ## 8. 체크리스트 — 새 에셋 넣기 전에
