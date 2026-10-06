@@ -246,6 +246,9 @@ namespace VRKart.Kart
 
                 _moveDirection = Quaternion.AngleAxis(-_slipAngle, _groundNormal) * ForwardOnPlane(_groundNormal);
                 velocity = _moveDirection * _speed + _groundNormal * normalSpeed;
+                // 이번 스텝에 더해질 중력의 경사 방향 성분도 상쇄 → 경사에서 멈춰 있을 때(카운트다운 등) 미끄러지지 않음 (#50)
+                // 경사에서의 속도는 가속·브레이크 입력으로만 정해진다(아케이드)
+                _rigidbody.AddForce(-Vector3.ProjectOnPlane(Physics.gravity, _groundNormal), ForceMode.Acceleration);
             }
             else
             {
