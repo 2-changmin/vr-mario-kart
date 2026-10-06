@@ -152,17 +152,17 @@ namespace VRKart.Core
 
 ## 차량 비주얼 규칙 (#40)
 
-조종석은 **실제 크기 스포츠카 실내**, AI 차량은 **같은 차종에 색·레이스 번호만 다르게** 입힌 3대입니다. 모델은 Khronos glTF 샘플 **Car Concept**(CC BY 4.0, Eric Chadwick / Darmstadt Graphics Group — [ASSETS 크레딧](ASSETS.md#7-크레딧))을 게임용으로 합치고 줄인 것입니다(로고 제거). 결정 배경과 체크리스트는 이슈 #40에 있습니다. (Kenney Car Kit 차·직접 만든 조종석은 이 규칙 이전 버전 — git 기록 참고)
+조종석은 **실제 크기 GT 스포츠카 실내**(검정 + 코냑 투톤, 직접 만든 대시보드·천장 + Car Concept 시트·도어·핸들), AI 차량은 **같은 차종에 색·레이스 번호만 다르게** 입힌 3대입니다. 모델은 Khronos glTF 샘플 **Car Concept**(CC BY 4.0, Eric Chadwick / Darmstadt Graphics Group — [ASSETS 크레딧](ASSETS.md#7-크레딧))을 게임용으로 합치고 줄인 것입니다(로고 제거). 결정 배경과 체크리스트는 이슈 #40에 있습니다. (Kenney Car Kit 차·직접 만든 조종석은 이 규칙 이전 버전 — git 기록 참고)
 
 **꼭 지킬 것** (Claude로 수정할 때도 먼저 읽기)
 
 1. **비주얼과 물리는 분리.** 차 모델·실내·번호·브레이크등은 콜라이더 없는 자식입니다. `Kart.prefab` 루트의 `Rigidbody`, `BoxCollider`(1.2 x 0.3 x 2m), `CapsuleCollider`, `KartController` 값은 비주얼 작업에서 바꾸지 않습니다.
 2. **실사 PBR이되 가볍게.** 메시는 머티리얼별로 합치고 간소화한 `Models/CarConcept/CarConcept_Game.asset` 하나(부품 경계·노멀이 크게 꺾이는 곳은 고정해서 틈·음영 깨짐 없음). 텍스처는 원본에서 쓰는 것만(최대 1024px, 노멀 512px). **실시간 반사(거울 카메라)·반투명 유리는 쓰지 않습니다** — 플레이어 차는 유리 없음, AI 차는 불투명 짙은 유리(`CarConcept_GlassDark`).
 3. 원본 머티리얼·텍스처는 `ThirdParty/Khronos/CarConcept/` 그대로(로고만 지움, `README.md`). 색·번호는 `_Project/Materials/Cars/CarConcept_*`와 프리팹에서 바꿉니다.
-4. `Cockpit/SeatEye`(0, 1.05, -0.35), `ViewRecenter`, `SteeringWheel`의 **잡기 콜라이더·회전 로직·`_visual` 연결은 그대로.** 핸들 모양은 `SteeringWheel/Visual/Wheel` 하나(Car Concept 핸들·패들, 테 중심 = 피벗, 핸들 축 30°에 맞춤). 핸들 기둥은 `Cockpit/Column`.
-5. **시야**: 차를 바닥에 붙이고 핸들 중심만 카트 핸들 피벗에 맞춰서(원래 모델보다 핸들이 약 15cm 높음) **대시 선이 눈 기준 약 13° 아래** → 앞길이 보입니다. 계기판(`GaugeCluster`)은 핸들 위쪽 틈(눈 기준 약 19° 아래). 앞유리는 캐노피형이라 A필러가 시야 가장자리(약 60° 밖)에 있습니다. 실내를 바꿀 때 이 두 시야를 가리지 않습니다.
+4. `Cockpit/SeatEye`(0, 1.05, -0.35), `ViewRecenter`, `SteeringWheel`의 **잡기 콜라이더·회전 로직·`_visual` 연결은 그대로.** 핸들 모양은 `SteeringWheel/Visual/Wheel` 하나(Car Concept 핸들·패들, 테 중심 = 피벗, 핸들 축 30°에 맞춤). 핸들 기둥은 `Cockpit/Column` + 실내 `Cabin`의 기둥 덮개.
+5. **시야**: 대시보드 윗면은 **눈 기준 14° 선 아래**(앞길이 보이게), 가운데 계기판 후드만 약 11°까지. 계기판(`GaugeCluster`, 디지털 화면 위 바늘 2개)은 **핸들 윗테 아래 틈**(눈 기준 16~25° 아래, 0.6m) — 핸들이 가운데일 때 가리지 않습니다. A필러는 좌우 약 37°, 앞유리 윗틀·룸미러는 위 약 13~25°. 실내를 바꿀 때 이 시야를 가리지 않습니다.
 6. 실내는 `Prefabs/Kart/Cockpit_Interior.prefab` 하나로, `Kart_Player/Cockpit` 아래에 붙어 있습니다. 실내 수정은 이 프리팹에서 합니다(`Kart_Player` 충돌 방지).
-7. HUD 대시보드(`DashLeft`/`DashRight`)는 실내의 `CockpitHudAnchors` 자리(`HudAnchor_Left`/`Right`)에 붙습니다. 지금은 핸들 양옆 대시 날개 위(눈에서 약 0.8m, 예전과 같은 시야각이 되게 스케일 ×1.09). 화면 위치·크기를 바꾸려면 **앵커만** 옮기거나 스케일을 바꿉니다.
+7. HUD 대시보드(`DashLeft`/`DashRight`)는 실내의 `CockpitHudAnchors` 자리(`HudAnchor_Left`/`Right`)에 붙습니다. 지금은 핸들 양옆 대시보드 앞에 태블릿처럼 세운 화면(x ±0.40, 눈에서 약 0.72m, 같은 시야각이 되게 스케일 0.538). 화면 위치·크기를 바꾸려면 **앵커만** 옮기거나 스케일을 바꿉니다.
 8. 계기판·바퀴·브레이크등 스크립트는 **읽기만** 합니다(`IKart.CurrentSpeed`, 같은 카트의 `IKartInput.Steer`/`Brake`). 입력·물리에 쓰지 않습니다.
 9. AI 차량은 `Kart.prefab`의 **Variant**(`Kart_AI_*.prefab`)입니다. 박스 차체·좌석·실린더 바퀴(`Body`, `Seat`, `Wheels`)는 꺼 두고, 자식 `Car`(Car Concept 외형, **0.82배**)를 보여 줍니다.
 10. 리버리 = 차체 색 머티리얼(`CarConcept_Paint_AI_*`) + 레이스 번호(TextMeshPro, 문 2 + 지붕 1 — 차체 표면에 붙임). 메시는 공용이라 수정하지 않습니다.
@@ -174,7 +174,7 @@ namespace VRKart.Core
 | 대상 | 내용 |
 | --- | --- |
 | `Kart_Player` | `Body`·`Wheels`·`Seat` 꺼짐. `Car` = Car Concept 외형(**높이·길이 실제 크기, 폭 0.8배** — 실제 폭 2.2m면 옆에 붙은 AI 차가 실내로 깊이 파고들어서 예전 조종석 폭(문 ±0.7m)에 맞춤), 파랑 `CarConcept_Paint_Player_Blue`, 유리 없음. 차체는 그림자를 그리지 않고 `Shadow`(그림자 전용 대역)만. 바퀴는 안에서 안 보여서 없음(에디터에서 밖에서 보면 바퀴 자리가 비어 있음). 핸들 모양 교체 |
-| `Cockpit_Interior` | `CarInterior/Interior`(Car Concept 실내: 대시·시트·도어 트림·페달·바닥, 2.7만 삼각형, 그림자 없음), 계기판 `GaugeCluster`(속도계 0~120km/h, 회전계 0~8천rpm·7천부터 레드존, 디지털 속도, 단수 — 원래 모델의 고정 계기 화면 자리에 눈을 향해. `Housing`·`Visor` 꺼짐), HUD 화면 앵커 2개 |
+| `Cockpit_Interior` | `CarInterior/Interior`(Car Concept 실내 중 시트·도어 트림·바닥·페달·뒤 패널, 2.5만 삼각형 — 날개형 대시·가운데 대시·롤케이지는 뺌), **`Cabin`**(직접 만든 GT 실내, `Models/Cockpit/Cabin_GT.asset`, 8천 삼각형, 머티리얼 10 = `Cabin_*`: 가죽 윗면 + 코냑 가죽 면 + 카본 아랫면·무릎 패널, 메탈 트림 + 파란 앰비언트 라이트, 원형·사각 송풍구 4, 계기판 후드, 핸들 기둥 덮개, 스웨이드 천장·A/B필러·앞유리 윗틀·햇빛 가리개, 룸미러), 계기판 `GaugeCluster`(디지털 화면 위 속도계 0~120km/h·회전계 0~8천rpm, 디지털 속도, 단수, 1.12배), HUD 화면 앵커 2개. 그림자 없음 |
 | `Kart_AI_Sedan_Red` | Car Concept, 빨강, **7** — 씬의 `AI 1` |
 | `Kart_AI_Hatch_Yellow` | Car Concept, 노랑, **22** — 씬의 `AI 2` (프리팹 이름은 씬 연결 때문에 그대로) |
 | `Kart_AI_Sedan_Green` | Car Concept, 초록, **31** — 씬의 `AI 3` |
@@ -185,8 +185,9 @@ namespace VRKart.Core
 - **빛나 보이는 머티리얼은 URP Unlit**(`Cockpit_Needle`, `Cockpit_GaugeMark`, `Cockpit_Redline`, `Car_BrakeLight`, Car Concept 헤드라이트·방향지시등). URP Lit의 Emission은 에디터가 저장할 때 `_EMISSION` 키워드를 빼버리는 일이 반복돼서 쓰지 않습니다(Quest에는 Bloom도 없어서 차이 없음).
 - `CockpitGauges` (`Scripts/UI/`, `Cockpit_Interior`에 붙음): 바늘은 로컬 Z로 260° 시계 방향. 회전수·단수는 변속기가 없어서 속도 구간(최고 속도의 18/34/52/70/86/100%)으로 흉내 냅니다. 후진 `R`, 정지 `N`.
 - **새 AI 리버리 추가**: `Materials/Cars/CarConcept_Paint_AI_Red.mat`을 복제해서 `_BaseColor`만 바꿈(이름에 Red/Yellow/Green이 들어가면 미니맵 점 색도 따라감) → `Kart_AI_*` Variant를 복제해서 `Car/Body`의 차체색 머티리얼 칸과 `RaceNumber/Number` 텍스트를 바꿉니다.
-- 멀미 저감 유리 틴트(`Cockpit/ComfortWindows`)는 새 차의 유리 자리로 옮겼습니다(앞유리 띠 아래 끝은 대시 선 아래, 위 끝은 눈 위 약 45°, 옆유리 x ±0.64).
-- **성능**(운전자 시점 추정, 차 4대가 모두 가까이 있을 때 = LOD 최고 단계로 센 최악값): 그리기 호출은 오히려 줄었습니다(예전 조종석 120 → 76). 삼각형 최대 서킷 9.7만 → 26만, 캠퍼스 28만 → 45만(Quest 2 권장 75만~100만 안). 실기기 프레임은 #15에서 확인하고, 모자라면 AI 차체 기본 단계를 한 단계 낮추면 됩니다(2.9만 → 1.5만).
+- 멀미 저감 유리 틴트(`Cockpit/ComfortWindows`)는 새 실내의 유리 자리로 옮겼습니다(앞유리 = 대시 윗면 ~ 윗틀 사이 z 0.31, 옆유리 = 문 위 ~ 천장 옆 x ±0.645).
+- 시트·도어 장식의 강조색은 플레이어만 코냑(`CarConcept_Interior_Cognac`). 천장은 차 밖 껍데기보다 높아서 에디터에서 밖에서 보면 지붕 위로 튀어나와 보입니다(게임에서는 안에서만 보임).
+- **성능**(운전자 시점 추정, 차 4대가 모두 가까이 있을 때 = LOD 최고 단계로 센 최악값): 그리기 호출은 오히려 줄었습니다(예전 조종석 120 → 85). 삼각형 최대 서킷 9.7만 → 27만, 캠퍼스 28만 → 45만(Quest 2 권장 75만~100만 안). 실기기 프레임은 #15에서 확인하고, 모자라면 AI 차체 기본 단계를 한 단계 낮추면 됩니다(2.9만 → 1.5만).
 - ⚠️ 차 모델(0.82배)은 길이 약 3.6m, 폭 약 1.8m로 콜라이더(1.2 x 2m)보다 큽니다. 나란히 붙으면 AI 차가 플레이어 실내 쪽으로 약 0.4m 들어와 보일 수 있습니다(예전 Kenney 차·조종석과 같은 정도 — 그래서 플레이어 차 폭을 0.8배로 맞춤). 콜라이더를 차 크기에 맞출지 #3/#15에서 결정합니다(물리 변경이라 이창민 담당).
 
 ## Kart — 주행 (`KartController`)
