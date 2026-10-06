@@ -29,7 +29,7 @@
 | 16 | 통합 테스트 & 발표/시연 준비 | 공동 | M4 | P0 |
 | 40 | 차량 실내(닫힌 승용차 조종석) & AI 차량 외형 | 윤승희 | M3 | P1 |
 | 46 | 멀미 저감 효과 정량 평가 (SSQ 사용자 테스트) — 차별화 | 공동 | M4 | P1 |
-| 47 | 타임어택 모드 & 고스트 카 — 차별화 | 윤승희 (제안, 확정 필요) | M3 | P1 |
+| 47 | 타임어택 모드 & 고스트 카 — 차별화 | 이창민 (팀 합의, 메뉴·HUD·결과 화면 수정은 윤승희 리뷰) | M3 | P1 |
 | 48 | 캠퍼스 테마 트랙 — 동아대 승학캠퍼스 — 차별화 | 윤승희 (제안, 확정 필요) | M3 | P1 |
 | 49 | 차별화 기능 문서 반영 | 이창민 | M3 | P1 |
 | 50 | 트랙 경사(높낮이) 지원 — 트랙 생성 코드 윤승희, 카트 검증 이창민 | 공동 | M3 | P1 |
@@ -45,6 +45,7 @@
 | `Assets/_Project/Scripts/XR/` | 이창민 |
 | `Assets/_Project/Scripts/Kart/` | 이창민 |
 | `Assets/_Project/Scripts/Items/` | 이창민 |
+| `Assets/_Project/Scripts/TimeAttack/` | 이창민 |
 | `Assets/_Project/Prefabs/Kart/`, `Prefabs/Items/` | 이창민 |
 | `Assets/_Project/Scripts/Race/` | 윤승희 |
 | `Assets/_Project/Scripts/AI/` | 윤승희 |
@@ -70,7 +71,7 @@
 | `Kart.prefab` | 이창민 | 윤승희 (트랙 배치, AI) | 트랙 씬에는 프리팹으로만 배치 |
 | `ComfortSettings` | 이창민 | 윤승희 (설정 화면 #12) | 멀미 저감 켬/끔·강도·방식·수평 유지, 닫을 때 `Save()` |
 | `TrackLayout` 경사(#50) | 윤승희 | 이창민 (카트 경사 주행 검증) | 조각별 높이 변화, 최대 경사 기준 |
-| `Kart_Ghost.prefab`(#47) | 이창민 | 윤승희 (고스트 재생) | 물리 없는 반투명 차량 비주얼 |
+| `TimeAttackSettings` / `TimeAttackSession.Current`(#47) | 이창민 | 윤승희 (메뉴 모드·고스트 설정, HUD·랩 메시지·결과 화면) | 모드 선택·고스트 표시 켬/끔, 최고 기록·고스트와의 차이·신기록 여부 |
 
 ## 커뮤니케이션
 

@@ -18,6 +18,7 @@ Assets/
 │  │  ├─ XR/                     # 핸들, 리센터, 비네팅
 │  │  ├─ Kart/                   # KartController, 드리프트, 부스트, 입력
 │  │  ├─ Items/                  # 아이템 박스, 아이템
+│  │  ├─ TimeAttack/             # 타임어택 모드, 기록 저장, 고스트 카 (#47)
 │  │  ├─ Race/                   # 체크포인트, 랩, RaceManager, 순위
 │  │  ├─ Track/                  # 트랙 중심선(TrackLayout), 도로 메시 생성, 에디터 버튼
 │  │  ├─ AI/                     # AI 입력, 웨이포인트
@@ -474,6 +475,25 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - 플레이어가 완주하면 `Finished` → `OnRaceFinished`. AI는 그 뒤에도 계속 달리고, 완주하면 `OnParticipantFinished`가 발생합니다.
 - 일시정지 입력(컨트롤러 메뉴 버튼)과 메뉴 UI는 #12에서 이 API를 호출합니다.
 
+## 타임어택 & 고스트 카 (#47)
+
+`Scripts/TimeAttack/` (`VRKart.TimeAttack`), `Prefabs/Kart/Kart_Ghost.prefab`, `Materials/Kart/Kart_Ghost.mat`
+
+- **모드 선택**: 메인 메뉴 `모드: 그랑프리 ↔ 타임어택` 버튼 → `TimeAttackSettings.IsTimeAttack`. 트랙 선택처럼 메뉴 ↔ 트랙 씬을 오가는 동안 기억합니다(앱을 껐다 켜면 그랑프리). 트랙 씬을 에디터에서 바로 Play하면 그랑프리입니다.
+- **트랙 씬은 고치지 않습니다.** `Kart_Player` 루트의 `TimeAttackSession`이 타임어택일 때만 동작합니다(`[DefaultExecutionOrder(-1000)]`).
+  1. `RaceManager.Awake`가 참가자를 모으기 **전에** AI 카트(플레이어가 아닌 `RaceProgress`)와 `ItemBox`를 끕니다 → 혼자 달리는 레이스(대시 패드는 그대로, 랩 수는 트랙 설정 그대로).
+  2. 이 트랙의 이전 기록을 불러오고, 고스트 표시가 켜져 있으면 `Kart_Ghost`를 만듭니다.
+  3. GO부터 플레이어 카트 위치·회전을 **약 20Hz**로 기록하고, 완주하면 `SaveIfBest` — 전체 기록이 빠르면 고스트·구간 기록까지 교체, 랩 기록만 빠르면 최고 랩만 교체.
+- **저장**: `persistentDataPath/TimeAttack/<씬 이름>.ghost` (바이너리, `TimeAttackRecord`). 랩 수, 최고 전체 기록, 최고 랩, 랩 구간(누적 시간), 고스트 샘플. 3랩 약 3분 ≈ 3,300 샘플 ≈ 100KB. 랩 수가 바뀐 트랙이면 이전 기록을 쓰지 않습니다.
+- **고스트 카**(`GhostCar`): `Kart_Player`의 `Car` 모델을 복사해 스크립트·콜라이더를 뺀 것(충돌 없음, 그림자 없음, 반투명 파랑 `Kart_Ghost.mat`, 알파 0.45). `RaceManager.RaceTime`에 맞춰 샘플 사이를 보간 재생하므로 카운트다운 동안은 출발 자리에 있고, 일시정지하면 같이 멈춥니다. **최고 기록 주행 전체**를 재생합니다(랩마다 되감지 않음 → 1랩 출발부터 같이 달림).
+  - 플레이어와 **6m부터 흐려지고 2.5m 안이면 사라집니다.** 반투명 차가 조종석을 통과하면 VR에서 거슬리기 때문입니다. 완주 지점에 도착하면 사라집니다.
+  - 설정의 `고스트 표시 켬/끔` → `TimeAttackSettings.ShowGhost`(`settings.timeAttack.showGhost`, 기본 켬). 꺼도 기록은 저장됩니다.
+- **UI에서 읽는 것** (`TimeAttackSession.Current`, 그랑프리면 null)
+  - HUD 순위 칸(타임어택에서는 늘 1위라) → `최고 2:53.5`(기록이 없으면 `--:--.-`)
+  - 랩 완료 메시지 → `1랩  0:58.686  +0.03`. 이번 주행과 최고 기록 주행(고스트)의 **같은 랩 끝 시점 차이**(`TryGetSplitDelta`). 빠르면 파랑 `-`, 느리면 주황 `+`(색과 부호 둘 다).
+  - 결과 화면 랩 기록 첫 줄 → `신기록!` 또는 `이전 최고   2:53.555`. 전체 기록 칸(440px, 68pt)은 옆에 붙일 자리가 없습니다.
+- 확인(`Track_Main`, 플레이어 카트를 AI 입력으로 자동 주행): 참가자 1명·아이템 박스 0개, 첫 판 `신기록!`·저장(2:53.555, 3,313 샘플), 둘째 판 고스트 재생·랩 차이 `+0.03`/`+0.15`·HUD `최고 2:53.5`·결과 `이전 최고`. 메뉴에서 모드를 고르고 시작하는 흐름으로도 확인했습니다.
+
 ## UI — 결과 화면 (`UI_ResultScreen`)
 
 `Scripts/UI/` (`VRKart.UI`), `Prefabs/UI/`
@@ -507,11 +527,13 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 ## UI — 메인 메뉴 · 일시정지 (`UI_MainMenu`, `UI_PauseMenu`)
 
 - **`Scenes/MainMenu.unity`**: XR Origin, `EventSystem` + `XRUIInputModule`, 바닥, `UI_MainMenu`
-  - `MainMenu` — `트랙: …`(누를 때마다 `서킷`(`Track_Main`) ↔ `동아대 캠퍼스`(`Track_Campus`), 메뉴로 돌아와도 기억) / `시작` → 고른 트랙 / `설정` → 볼륨 슬라이더 3개(전체·배경음악·효과음) / `종료`
+  - `MainMenu` — `트랙: …`(누를 때마다 `서킷`(`Track_Main`) ↔ `동아대 캠퍼스`(`Track_Campus`), 메뉴로 돌아와도 기억) / `모드: 그랑프리 ↔ 타임어택`(#47, 위 타임어택 절) / `시작` → 고른 트랙 / `설정` → 볼륨 슬라이더 3개(전체·배경음악·효과음) / `종료`
+  - 패널 1000 × 830px(#47에서 버튼 1개·설정 1줄이 늘어 760 → 830). 메인 버튼은 높이 108px, 125px 간격.
   - 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 정면 1.5m에 놓입니다(`PlayerSpace`).
   - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
 - **설정** (`PlayerPrefs`): `GameSettings.MasterVolume`(= `AudioListener.volume`), `AudioVolumes.Music`·`AudioVolumes.Sfx`(아래 사운드 절). 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
   - 멀미 저감(#6 `ComfortSettings`): **멀미 저감 켬/끔**(버튼) → `VignetteEnabled`, **강도** 슬라이더 → `VignetteIntensity`(끔이면 비활성), **수평 유지 켬/끔** → `HorizonLock`. `뒤로`를 누를 때 `ComfortSettings.Save()`. 방식(틴팅/가장자리)과 평가용 표시는 설정 화면에 넣지 않았습니다(기본 틴팅).
+  - 고스트(#47): **고스트 표시 켬/끔** → `TimeAttackSettings.ShowGhost`. `뒤로`를 누를 때 `TimeAttackSettings.Save()`.
 - **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m, **눈높이 +0.08m**에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다. 결과 화면은 +0.12m. 조종석 앞유리 안(눈 기준 약 10° 아래 ~ 19° 위)에 패널 전체가 들어오게 한 값입니다(그보다 낮으면 대시보드에 가려짐).
   - XRI 기본 입력 액션에는 메뉴 버튼이 없어서, `PauseMenu`가 `<XRController>{LeftHand}/{MenuButton}` 바인딩을 직접 만듭니다.
 - 빌드 씬 목록: `MainMenu`를 **맨 끝에 추가만** 했습니다. **빌드 첫 씬(0번)은 아직 CI용 `Changmin_Setup`**이라, APK를 실행하면 메뉴가 아니라 그 씬이 먼저 뜹니다. 첫 씬을 `MainMenu`로 바꿀지는 이창민과 합의가 필요합니다.
@@ -520,11 +542,11 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 
 - **TMP 기본 폰트 = `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset`** (TMP Settings에서 지정). 새로 만드는 TMP 텍스트는 자동으로 이 폰트를 씁니다. 영문 대체 폰트(fallback)는 LiberationSans입니다.
 - 한글 11,172자를 다 넣으면 에셋이 수십 MB가 되므로, **UI에 쓰는 글자만 넣은 정적(Static) 아틀라스**입니다. 실행 중에 에셋이 바뀌지 않아 git에 변경이 생기지 않습니다.
-- 들어 있는 글자는 `Assets/_Project/Fonts/Pretendard_Characters.txt`입니다. ASCII 전체, 한글 103자, 결과·메뉴·설정·HUD에 쓸 단어가 들어 있습니다.
+- 들어 있는 글자는 `Assets/_Project/Fonts/Pretendard_Characters.txt`입니다. ASCII 전체, 한글 109자, 결과·메뉴·설정·HUD에 쓸 단어가 들어 있습니다(#47에서 `모드 그랑프리 타임어택 고스트 표시 신기록` 줄 추가).
 - ⚠️ **파일에 없는 한글을 쓰면 □로 나옵니다.** 새 문구를 쓸 때는:
   1. `Pretendard_Characters.txt`에 그 글자(단어)를 추가
   2. `Window > TextMeshPro > Font Asset Creator` — Source Font `Pretendard-SemiBold`, Sampling Point Size **Custom 48**, Padding **6**, Packing Optimum, Atlas **1024 x 1024**, Character Set **Characters from File** → 위 txt, Render Mode **SDFAA**
-  3. **Generate Font Atlas → Save** 를 누르고 기존 `Pretendard-SemiBold SDF.asset`에 덮어쓰기 (GUID가 유지돼 프리팹 연결이 그대로)
+  3. **Generate Font Atlas → Save** 를 누르고 기존 `Pretendard-SemiBold SDF.asset`에 덮어쓰기 (GUID가 유지돼 프리팹 연결이 그대로). 창을 새로 열어 만들면 저장 위치가 원본 폰트 폴더(`ThirdParty`)로 잡히므로 **Save as...** 로 `_Project/Fonts/Pretendard-SemiBold SDF.asset`을 골라 덮어씁니다.
 - 원본 폰트: `Assets/ThirdParty/Fonts/Pretendard/Pretendard-SemiBold.otf` (+ `OFL.txt`). 원본은 수정하지 않습니다.
 - 테스트 씬: `Scenes/Sandbox/Seunghee_UI.unity` — 작은 사각 코스(체크포인트 6개)에서 플레이어·AI 테스트 카트가 2랩을 돕니다. HUD가 보이다가 약 25초 뒤 결과 화면이 뜹니다.
 
