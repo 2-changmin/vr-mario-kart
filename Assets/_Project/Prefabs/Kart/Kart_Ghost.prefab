@@ -1025,5 +1025,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VRKart.TimeAttack.GhostCar
   _ghostMaterial: {fileID: 2100000, guid: 83fa8c84c9f75c846a7cc422c5d76642, type: 2}
   _alpha: 0.45
-  _hideDistance: 2.5
-  _fadeDistance: 6

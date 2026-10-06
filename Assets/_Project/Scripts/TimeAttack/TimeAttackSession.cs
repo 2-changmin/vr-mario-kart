@@ -68,7 +68,7 @@ namespace VRKart.TimeAttack
             _raceManager.OnParticipantFinished += HandleParticipantFinished;
 
             if (TimeAttackSettings.ShowGhost && _record != null && _record.Samples.Count >= 2 && _ghostPrefab != null)
-                Instantiate(_ghostPrefab).Play(_record.Samples, _raceManager, transform);
+                Instantiate(_ghostPrefab).Play(_record.Samples, _raceManager);
         }
 
         private void OnDestroy()
