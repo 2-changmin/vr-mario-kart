@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRKart.Audio;
 using VRKart.Race;
+using VRKart.TimeAttack;
 using VRKart.XR;
 
 namespace VRKart.UI
 {
-    // 메인 메뉴: 트랙 선택(서킷 / 동아대 캠퍼스, #48) / 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
+    // 메인 메뉴: 트랙 선택(서킷 / 동아대 캠퍼스, #48) / 모드 선택(그랑프리 / 타임어택, #47) / 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지, 고스트 표시) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
     public sealed class MainMenu : MonoBehaviour
     {
         [SerializeField] private string _raceScene = SceneLoader.TrackMain;
@@ -28,6 +29,12 @@ namespace VRKart.UI
         [Header("트랙 선택 (#48)")]
         [SerializeField] private Button _trackButton;
         [SerializeField] private TMP_Text _trackText;
+
+        [Header("타임어택 (TimeAttackSettings, #47)")]
+        [SerializeField] private Button _modeButton;
+        [SerializeField] private TMP_Text _modeText;
+        [SerializeField] private Button _ghostButton;
+        [SerializeField] private TMP_Text _ghostText;
 
         [Header("멀미 저감 (ComfortSettings, #6)")]
         [SerializeField] private Button _comfortButton;
@@ -56,6 +63,7 @@ namespace VRKart.UI
             _mainPanel.SetActive(true);
             _settingsPanel.SetActive(false);
             UpdateTrackText();
+            UpdateModeText();
         }
 
         public void ShowSettings()
@@ -66,6 +74,7 @@ namespace VRKart.UI
             if (_comfortSlider != null) _comfortSlider.SetValueWithoutNotify(ComfortSettings.VignetteIntensity);
             UpdateVolumeText();
             UpdateComfortText();
+            UpdateGhostText();
             _mainPanel.SetActive(false);
             _settingsPanel.SetActive(true);
         }
@@ -81,6 +90,7 @@ namespace VRKart.UI
         {
             _startButton.onClick.AddListener(HandleStart);
             if (_trackButton != null) _trackButton.onClick.AddListener(NextTrack);
+            if (_modeButton != null) _modeButton.onClick.AddListener(ToggleMode);
             _settingsButton.onClick.AddListener(ShowSettings);
             _quitButton.onClick.AddListener(HandleQuit);
             _backButton.onClick.AddListener(HandleBack);
@@ -90,12 +100,14 @@ namespace VRKart.UI
             if (_comfortButton != null) _comfortButton.onClick.AddListener(ToggleComfort);
             if (_comfortSlider != null) _comfortSlider.onValueChanged.AddListener(HandleComfortChanged);
             if (_horizonButton != null) _horizonButton.onClick.AddListener(ToggleHorizon);
+            if (_ghostButton != null) _ghostButton.onClick.AddListener(ToggleGhost);
         }
 
         private void OnDisable()
         {
             _startButton.onClick.RemoveListener(HandleStart);
             if (_trackButton != null) _trackButton.onClick.RemoveListener(NextTrack);
+            if (_modeButton != null) _modeButton.onClick.RemoveListener(ToggleMode);
             _settingsButton.onClick.RemoveListener(ShowSettings);
             _quitButton.onClick.RemoveListener(HandleQuit);
             _backButton.onClick.RemoveListener(HandleBack);
@@ -105,6 +117,7 @@ namespace VRKart.UI
             if (_comfortButton != null) _comfortButton.onClick.RemoveListener(ToggleComfort);
             if (_comfortSlider != null) _comfortSlider.onValueChanged.RemoveListener(HandleComfortChanged);
             if (_horizonButton != null) _horizonButton.onClick.RemoveListener(ToggleHorizon);
+            if (_ghostButton != null) _ghostButton.onClick.RemoveListener(ToggleGhost);
         }
 
         // 트랙 선택 버튼이 없으면 Race Scene 그대로
@@ -121,10 +134,23 @@ namespace VRKart.UI
             if (_trackText != null) _trackText.text = "트랙: " + Tracks[s_trackIndex].Label;
         }
 
+        // 그랑프리(AI와 레이스) ↔ 타임어택(혼자 주행 + 기록·고스트). 선택은 트랙과 같이 메뉴로 돌아와도 유지된다
+        private void ToggleMode()
+        {
+            TimeAttackSettings.IsTimeAttack = !TimeAttackSettings.IsTimeAttack;
+            UpdateModeText();
+        }
+
+        private void UpdateModeText()
+        {
+            if (_modeText != null) _modeText.text = TimeAttackSettings.IsTimeAttack ? "모드: 타임어택" : "모드: 그랑프리";
+        }
+
         private void HandleBack()
         {
             GameSettings.Save();
             ComfortSettings.Save();
+            TimeAttackSettings.Save();
             ShowMain();
         }
 
@@ -165,6 +191,17 @@ namespace VRKart.UI
         {
             ComfortSettings.HorizonLock = !ComfortSettings.HorizonLock;
             UpdateComfortText();
+        }
+
+        private void ToggleGhost()
+        {
+            TimeAttackSettings.ShowGhost = !TimeAttackSettings.ShowGhost;
+            UpdateGhostText();
+        }
+
+        private void UpdateGhostText()
+        {
+            if (_ghostText != null) _ghostText.text = TimeAttackSettings.ShowGhost ? "켬" : "끔";
         }
 
         private void HandleComfortChanged(float value)
