@@ -4,12 +4,14 @@ using UnityEngine.UI;
 using VRKart.Core;
 using VRKart.Items;
 using VRKart.Race;
+using VRKart.TimeAttack;
 
 namespace VRKart.UI
 {
     // 인게임 HUD 루트. 카운트다운이 시작될 때 플레이어 눈 위치에 배치되고(PlayerSpace), 일시정지 중과 플레이어 완주 후에는 숨긴다.
     // 자식의 대시보드(눈앞 아래)와 가운데 메시지(RaceMessages)는 루트 기준 위치에 미리 놓여 있다.
     // 플레이어 카트에 CockpitHudAnchors(조종석 화면 자리)가 있으면 대시보드 두 장을 그 자리로 옮긴다.
+    // 타임어택(#47)에서는 순위가 늘 1위라 순위 칸에 이 트랙의 최고 기록을 대신 보여 준다.
     public sealed class RaceHud : MonoBehaviour
     {
         [SerializeField] private RaceManager _raceManager;
@@ -41,6 +43,7 @@ namespace VRKart.UI
         private RaceMinimap _minimap;
         private ItemHolder _playerItems;
         private float _itemPop;
+        private TimeAttackSession _timeAttack;
 
         public bool IsShown => _content.activeSelf;
 
@@ -102,6 +105,7 @@ namespace VRKart.UI
             _player = _raceManager.Player;
             _playerKart = _player != null ? _player.GetComponent<IKart>() : null;
             _participantCount = _raceManager.GetResults().Count;
+            _timeAttack = TimeAttackSession.Current;
             _playerItems = _player != null ? _player.GetComponent<ItemHolder>() : null;
             if (_playerItems != null) _playerItems.ItemChanged += ShowItem;
             ShowItem(_playerItems != null ? _playerItems.CurrentItem : ItemType.None, pop: false);
@@ -175,11 +179,18 @@ namespace VRKart.UI
                 _lapText.text = $"{lap}<size=60%>/{_player.TotalLaps}</size>";
             }
 
-            int rank = _player.Rank;
-            if (force || rank != _shownRank)
+            if (_timeAttack != null)
             {
-                _shownRank = rank;
-                _rankText.text = $"{rank}위<size=60%> /{_participantCount}</size>";
+                if (force) _rankText.text = "<size=60%>최고 </size>" + (_timeAttack.HasRecord ? TimeFormat.FormatTenths(_timeAttack.BestTotal) : "--:--.-");
+            }
+            else
+            {
+                int rank = _player.Rank;
+                if (force || rank != _shownRank)
+                {
+                    _shownRank = rank;
+                    _rankText.text = $"{rank}위<size=60%> /{_participantCount}</size>";
+                }
             }
 
             int speed = _playerKart != null ? Mathf.RoundToInt(Mathf.Abs(_playerKart.CurrentSpeed) * 3.6f) : 0;
