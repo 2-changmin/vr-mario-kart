@@ -2727,6 +2727,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7362193095829635447, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3725471283637264727}
+    - targetCorrespondingSourceObject: {fileID: 7362193095829635447, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7086971131887053851}
   m_SourcePrefab: {fileID: 100100000, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
 --- !u!1 &563394835510041810 stripped
 GameObject:
@@ -2926,6 +2929,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VRKart.XR.ComfortPresetToggle
   _label: {fileID: 3022378529606041875}
   _labelSeconds: 3
+--- !u!114 &7086971131887053851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 563394835510041810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39d66c5da97293844a7b3a03264426e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRKart.TimeAttack.TimeAttackSession
+  _ghostPrefab: {fileID: 5928764891987135587, guid: 780a761ed7116cf40a8a7b4e9e8b027e, type: 3}
+  _sampleInterval: 0.05
 --- !u!4 &8923467021570488255 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1886114312385260058, guid: 240ca1e1ed6d24b488f0977b814856cc, type: 3}
