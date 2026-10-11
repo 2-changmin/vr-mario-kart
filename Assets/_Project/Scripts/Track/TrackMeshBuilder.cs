@@ -233,6 +233,7 @@ namespace VRKart.Track
                 var meshRenderer = go.AddComponent<MeshRenderer>();
                 meshRenderer.sharedMaterial = material;
                 meshRenderer.shadowCastingMode = shadows ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+                meshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;   // 큰 메시라 프로브 한 점으로 칠하면 어색함 → 기본 환경광 (TrackLightingBaker)
             }
             if (collider) go.AddComponent<MeshCollider>().sharedMesh = mesh;
             _generated.Add(go);

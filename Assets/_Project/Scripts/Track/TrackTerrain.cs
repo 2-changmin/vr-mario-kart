@@ -180,6 +180,7 @@ namespace VRKart.Track
             var meshRenderer = go.AddComponent<MeshRenderer>();
             meshRenderer.sharedMaterial = _material;
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;   // 큰 메시 → 라이트 프로브 대신 기본 환경광
             go.AddComponent<MeshCollider>().sharedMesh = mesh;   // 장식 배치용 레이캐스트, 튕겨 나간 아이템 받기
             _generated.Add(go);
             _generated.Add(mesh);
@@ -350,6 +351,7 @@ namespace VRKart.Track
             var meshRenderer = go.AddComponent<MeshRenderer>();
             meshRenderer.sharedMaterial = material;
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;   // 큰 메시 → 라이트 프로브 대신 기본 환경광
             if (collider) go.AddComponent<MeshCollider>().sharedMesh = mesh;
             _generated.Add(go);
             _generated.Add(mesh);
