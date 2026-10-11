@@ -48,6 +48,7 @@ namespace VRKart.Core
                 var renderer = go.AddComponent<MeshRenderer>();
                 renderer.sharedMaterial = kv.Key.Item3;
                 renderer.shadowCastingMode = _castShadows ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;   // 100m 칸 메시 → 기본 환경광 (라이트 프로브는 카트 같은 움직이는 물체용)
             }
             foreach (var renderer in sources) renderer.enabled = false;
             ChunkCount = groups.Count;

@@ -399,6 +399,17 @@ namespace VRKart.Core
 - **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스 + 재질·배치·분위기·캠퍼스 밖 거리): 전원 완주(309.1s ~ 336.4s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
 - 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).
 
+## 트랙 조명 (반사·라이트 프로브)
+
+`Track_Main`·`Track_Campus`는 라이트맵 없이 **프로브만** 굽습니다. 도로·지형(`TrackMeshBuilder`·`TrackTerrain`)이 실행 중에 만들어져서 라이트맵을 저장할 수 없고, 프로브는 Quest에서 거의 공짜이기 때문입니다.
+
+- **굽기**: 트랙 씬을 열고 메뉴 **VRKart > 트랙 조명 굽기 (열린 씬)** (`Scripts/Track/Editor/TrackLightingBaker.cs`). 배치 모드는 `-executeMethod VRKart.Track.Editor.TrackLightingBaker.BakeAllTracks`. **트랙 모양·건물·큰 장식을 고친 뒤에는 다시 굽습니다.** 굽는 동안 카트는 잠깐 꺼서 찍히지 않게 합니다.
+- **반사 프로브** `Environment/ReflectionProbes`: 트랙을 따라 70m마다(서킷 15개, 캠퍼스 24개), 140 x 70 x 140m 상자를 겹쳐서 섞임. 128px 큐브맵 `Textures/ReflectionProbes/<씬>/Probe_NN.exr`(Custom 모드, 합계 약 4.7MB). 차 도장·크롬·유리에 하늘만이 아니라 주변 도로·잔디·건물이 비칩니다.
+- **라이트 프로브** `Environment/LightProbes`: 트랙을 따라 8m마다 좌·중·우(±6m) × 높이 0.4·2.6m(서킷 774개, 캠퍼스 1,248개). 건물 사이·나무 아래에서 하늘빛이 가려져 카트가 어두워지고, 주변에서 튄 빛 색을 받습니다.
+- 해(`Directional Light`)는 **Mixed**(Baked Indirect): 직접광·그림자는 예전처럼 실시간이고, 튄 빛만 프로브에 들어갑니다. 설정은 `Settings/Lighting/<씬>_Lighting.asset`, 결과는 `Scenes/<씬>/LightingData.asset`.
+- 라이트 프로브는 **카트·아이템·고스트처럼 움직이는 것만** 씁니다. 카트가 아닌 렌더러(건물·나무, 생성되는 도로·지형, `ChunkCombiner` 칸 메시)는 Light Probes = Off라 기본 환경광 그대로입니다(큰 메시를 프로브 한 점으로 칠하면 어색해서). 새 장식을 넣으면 굽기를 한 번 더 누르면 같이 Off가 됩니다.
+- 안개: 지평선 하늘색 (0.68, 0.76, 0.88), 서킷 100~600m, 캠퍼스 120~950m.
+
 ## 체크포인트 & 랩 규칙
 
 `Scripts/Race/` (`VRKart.Race`)
