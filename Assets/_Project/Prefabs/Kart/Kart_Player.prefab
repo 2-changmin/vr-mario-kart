@@ -168,7 +168,7 @@ MeshRenderer:
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -1212,6 +1212,7 @@ GameObject:
   - component: {fileID: 588082554625684546}
   - component: {fileID: 7421074197047424234}
   - component: {fileID: 2625808821825531038}
+  - component: {fileID: 1274052362607986200}
   m_Layer: 0
   m_Name: SteeringWheel
   m_TagString: Untagged
@@ -1333,6 +1334,22 @@ MonoBehaviour:
   _maxAngle: 90
   _returnSpeed: 360
   _visual: {fileID: 9188236876987446320}
+--- !u!114 &1274052362607986200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8778937499523451759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72cc6e4cd36adab47aeabb8e40227b9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRKart.Kart.SteeringWheelVisual
+  _wheel: {fileID: 2625808821825531038}
+  _visual: {fileID: 9188236876987446320}
+  _maxAngle: 90
+  _smoothing: 10
 --- !u!1001 &2637013529315818135
 PrefabInstance:
   m_ObjectHideFlags: 0

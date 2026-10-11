@@ -160,11 +160,11 @@ namespace VRKart.Core
 1. **비주얼과 물리는 분리.** 차 모델·실내·번호·브레이크등은 콜라이더 없는 자식입니다. `Kart.prefab` 루트의 `Rigidbody`, `BoxCollider`(1.2 x 0.3 x 2m), `CapsuleCollider`, `KartController` 값은 비주얼 작업에서 바꾸지 않습니다.
 2. **실사 PBR이되 가볍게.** 메시는 머티리얼별로 합치고 간소화한 `Models/CarConcept/CarConcept_Game.asset` 하나(부품 경계·노멀이 크게 꺾이는 곳은 고정해서 틈·음영 깨짐 없음). 텍스처는 원본에서 쓰는 것만(최대 1024px, 노멀 512px). **실시간 반사(거울 카메라)·반투명 유리는 쓰지 않습니다** — 플레이어 차는 유리 없음, AI 차는 불투명 짙은 유리(`CarConcept_GlassDark`).
 3. 원본 머티리얼·텍스처는 `ThirdParty/Khronos/CarConcept/` 그대로(로고만 지움, `README.md`). 색·번호는 `_Project/Materials/Cars/CarConcept_*`와 프리팹에서 바꿉니다.
-4. `Cockpit/SeatEye`(0, 1.05, -0.35), `ViewRecenter`, `SteeringWheel`의 **잡기 콜라이더·회전 로직·`_visual` 연결은 그대로.** 핸들 모양은 `SteeringWheel/Visual/Wheel` 하나(Car Concept 핸들·패들, 테 중심 = 피벗, 핸들 축 30°에 맞춤). 핸들 기둥은 `Cockpit/Column` + 실내 `Cabin`의 기둥 덮개.
+4. `Cockpit/SeatEye`(0, 1.05, -0.35), `ViewRecenter`, `SteeringWheel`의 **잡기 콜라이더·회전 로직·`_visual` 연결은 그대로.** 핸들 모양은 `SteeringWheel/Visual/Wheel` 하나(Car Concept 핸들·패들, 테 중심 = 피벗, 핸들 축 30°에 맞춤). 핸들 기둥은 `Cockpit/Column` + 실내 `Cabin`의 기둥 덮개. 손으로 잡지 않을 때(스틱·PC 키보드 조향)는 `SteeringWheelVisual`(`Scripts/Kart/`, `SteeringWheel`에 붙음)이 `IKartInput.Steer` × 90°만큼 `Visual`만 부드럽게 돌립니다(표시 전용, `SteeringWheel` 코드는 그대로). 다시 잡으면 0°부터 손을 따라 돕니다.
 5. **시야**: 대시보드 윗면은 **눈 기준 14° 선 아래**(앞길이 보이게), 가운데 계기판 후드만 약 11°까지. 계기판(`GaugeCluster`, 디지털 화면 위 바늘 2개)은 **핸들 윗테 아래 틈**(눈 기준 16~25° 아래, 0.6m) — 핸들이 가운데일 때 가리지 않습니다. A필러는 좌우 약 37°, 앞유리 윗틀·룸미러는 위 약 13~25°. 실내를 바꿀 때 이 시야를 가리지 않습니다.
 6. 실내는 `Prefabs/Kart/Cockpit_Interior.prefab` 하나로, `Kart_Player/Cockpit` 아래에 붙어 있습니다. 실내 수정은 이 프리팹에서 합니다(`Kart_Player` 충돌 방지).
 7. HUD 대시보드(`DashLeft`/`DashRight`)는 실내의 `CockpitHudAnchors` 자리(`HudAnchor_Left`/`Right`)에 붙습니다. 지금은 핸들 양옆 대시보드 앞에 태블릿처럼 세운 화면(x ±0.40, 눈에서 약 0.72m, 같은 시야각이 되게 스케일 0.538). 화면 위치·크기를 바꾸려면 **앵커만** 옮기거나 스케일을 바꿉니다.
-8. 계기판·바퀴·브레이크등 스크립트는 **읽기만** 합니다(`IKart.CurrentSpeed`, 같은 카트의 `IKartInput.Steer`/`Brake`). 입력·물리에 쓰지 않습니다.
+8. 계기판·바퀴·브레이크등·핸들 표시 스크립트는 **읽기만** 합니다(`IKart.CurrentSpeed`, 같은 카트의 `IKartInput.Steer`/`Brake`). 입력·물리에 쓰지 않습니다.
 9. AI 차량은 `Kart.prefab`의 **Variant**(`Kart_AI_*.prefab`)입니다. 박스 차체·좌석·실린더 바퀴(`Body`, `Seat`, `Wheels`)는 꺼 두고, 자식 `Car`(Car Concept 외형, **0.82배**)를 보여 줍니다.
 10. 리버리 = 차체 색 머티리얼(`CarConcept_Paint_AI_*`) + 레이스 번호(TextMeshPro, 문 2 + 지붕 1 — 차체 표면에 붙임). 메시는 공용이라 수정하지 않습니다.
 11. 씬의 AI 1~3에는 `RaceProgress`를 **씬에서** 추가합니다(프리팹에 넣지 않음). `AIKartInput`은 프리팹에 들어 있고 값(속도·라인)은 씬에서 덮어씁니다.
@@ -187,6 +187,7 @@ namespace VRKart.Core
 - `CockpitGauges` (`Scripts/UI/`, `Cockpit_Interior`에 붙음): 바늘은 로컬 Z로 260° 시계 방향. 회전수·단수는 변속기가 없어서 속도 구간(최고 속도의 18/34/52/70/86/100%)으로 흉내 냅니다. 후진 `R`, 정지 `N`.
 - **새 AI 리버리 추가**: `Materials/Cars/CarConcept_Paint_AI_Red.mat`을 복제해서 `_BaseColor`만 바꿈(이름에 Red/Yellow/Green이 들어가면 미니맵 점 색도 따라감) → `Kart_AI_*` Variant를 복제해서 `Car/Body`의 차체색 머티리얼 칸과 `RaceNumber/Number` 텍스트를 바꿉니다.
 - 멀미 저감 유리 틴트(`Cockpit/ComfortWindows`)는 새 실내의 유리 자리로 옮겼습니다(앞유리 = 대시 윗면 ~ 윗틀 사이 z 0.31, 옆유리 = 문 위 ~ 천장 옆 x ±0.645).
+- 조종석 실내(`Cockpit_Interior` 전체, 핸들)는 **반사 프로브를 쓰지 않습니다**(Reflection Probes = Off) — 닫힌 실내에 바깥 잔디·하늘이 그대로 비쳐 초록빛이 돌아서. 외장(보닛)은 씁니다.
 - 시트·도어 장식의 강조색은 플레이어만 코냑(`CarConcept_Interior_Cognac`). 천장은 차 밖 껍데기보다 높아서 에디터에서 밖에서 보면 지붕 위로 튀어나와 보입니다(게임에서는 안에서만 보임).
 - **성능**(운전자 시점 추정, 차 4대가 모두 가까이 있을 때 = LOD 최고 단계로 센 최악값): 그리기 호출은 오히려 줄었습니다(예전 조종석 120 → 85). 삼각형 최대 서킷 9.7만 → 27만, 캠퍼스 28만 → 45만(Quest 2 권장 75만~100만 안). 실기기 프레임은 #15에서 확인하고, 모자라면 AI 차체 기본 단계를 한 단계 낮추면 됩니다(2.9만 → 1.5만).
 - ⚠️ 차 모델(0.82배)은 길이 약 3.6m, 폭 약 1.8m로 콜라이더(1.2 x 2m)보다 큽니다. 나란히 붙으면 AI 차가 플레이어 실내 쪽으로 약 0.4m 들어와 보일 수 있습니다(예전 Kenney 차·조종석과 같은 정도 — 그래서 플레이어 차 폭을 0.8배로 맞춤). 콜라이더를 차 크기에 맞출지 #3/#15에서 결정합니다(물리 변경이라 이창민 담당).
@@ -305,7 +306,7 @@ namespace VRKart.Core
 
 `Track_Test`를 복사해서 트랙 부분만 바꾼 씬입니다. 레이스 오브젝트(`RaceManager`, `UI`, `Kart_Player`, `AI 1~3`, 출발선·출발 위치)는 `Track_Test`와 같은 구성·같은 위치입니다(결승선 = (0, 0, 60), +Z 방향).
 
-- 1랩 **약 1,031m**, 폭 10m 도로 + 갓길 3m + 벽(높이 1m). 평지(점프대 없음 — VR 멀미).
+- 1랩 **약 1,031m**, 폭 10m 도로 + 갓길 3m + 벽(높이 1m). 평지 + **뒷 직선에 점프대 1개**(#8, 818m, 도로 폭 전체, 공중 약 0.5초 — `HorizonLock`으로 지평선은 기울지 않음). 멀미가 심하면 `Props/JumpRamps`를 끄면 됩니다(#46 평가 때 확인).
 - 코스: 메인 직선(약 210m) → 1번 코너(오른쪽 90°, R20) → S자 → 오른쪽 90° 두 번 → **헤어핀(왼쪽 180°, R12)** → 큰 스위퍼(오른쪽 180°, R54) → 뒷 직선(141m) → 마지막 코너(R30). 시계 방향.
 - AI 3랩 기록(자동 주행 테스트): 1위 약 185초(랩 61~63초), 4대 모두 완주, 갓길 주행 0%, 리스폰 0회.
 
@@ -320,6 +321,7 @@ namespace VRKart.Core
 | `Environment/Scenery` | Kenney 모델 장식 (약 830개, 모두 Static): 결승선 게이트, 관중석 10, 피트 6, 조명탑, 깃발, 코너 배너 탑, 광고판, 텐트, 나무 320, 바위, 덤불, 꽃, 풀, 통나무. 모두 벽에서 떨어져 있어 주행에 닿지 않습니다 |
 | `RaceTrack/Checkpoint_00~40` | 체크포인트 41개 (약 25m 간격, 버튼으로 배치) |
 | `Props/ItemBoxes` | 아이템 박스 3줄 × 4개(2.5m 간격): 메인 직선 110m, 2번째 90° 뒤 직선 445m, 뒷 직선 870m (출발점 기준 중심선 거리) |
+| `Props/JumpRamps/JumpRamp_1` | `Track_JumpRamp`(경사 7°, 높이 약 1.1m, 길이 9m) — 뒷 직선 818m. 착지(약 845m) 뒤에 아이템 박스(871m) |
 | `Props/DashPads` | 150m 13% 오르막 직선 가운데, 422m 공유 도로 오르막 차로, **1,588m 결승 직전 직선 좌우 2개**(마지막 추월) — 경사에 맞춰 기울임 |
 | `AIPath/WP_000~171` | AI 웨이포인트 172개 (약 6m 간격, 버튼으로 배치) |
 | `KillZone` | 바닥 아래 1300m x 1300m |
@@ -503,7 +505,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
   2. 이 트랙의 이전 기록을 불러오고, 고스트 표시가 켜져 있으면 `Kart_Ghost`를 만듭니다.
   3. GO부터 플레이어 카트 위치·회전을 **약 20Hz**로 기록하고, 완주하면 `SaveIfBest` — 전체 기록이 빠르면 고스트·구간 기록까지 교체, 랩 기록만 빠르면 최고 랩만 교체.
 - **저장**: `persistentDataPath/TimeAttack/<씬 이름>.ghost` (바이너리, `TimeAttackRecord`). 랩 수, 최고 전체 기록, 최고 랩, 랩 구간(누적 시간), 고스트 샘플. 3랩 약 3분 ≈ 3,300 샘플 ≈ 100KB. 랩 수가 바뀐 트랙이면 이전 기록을 쓰지 않습니다.
-- **고스트 카**(`GhostCar`): `Kart_Player`의 `Car` 모델을 복사해 스크립트·콜라이더를 뺀 것(충돌 없음, 그림자 없음, 반투명 파랑 `Kart_Ghost.mat`, 알파 0.45). `RaceManager.RaceTime`에 맞춰 샘플 사이를 보간 재생하므로 카운트다운 동안은 출발 자리에 있고, 일시정지하면 같이 멈춥니다. **최고 기록 주행 전체**를 재생합니다(랩마다 되감지 않음 → 1랩 출발부터 같이 달림).
+- **고스트 카**(`GhostCar`): 플레이어 차와 같은 Car Concept 외형(`Models/CarConcept/CarConcept_Ghost.asset` — AI 차체·바퀴의 Mesh LOD 1단계를 서브메시 하나로 합친 1.9만 삼각형, 플레이어 `Car`와 같은 위치·폭 0.8배), 스크립트·콜라이더 없음(충돌 없음, 그림자 없음, 반투명 파랑 `Kart_Ghost.mat`, 알파 0.45). `RaceManager.RaceTime`에 맞춰 샘플 사이를 보간 재생하므로 카운트다운 동안은 출발 자리에 있고, 일시정지하면 같이 멈춥니다. **최고 기록 주행 전체**를 재생합니다(랩마다 되감지 않음 → 1랩 출발부터 같이 달림).
   - 플레이어와 **겹쳐도 사라지지 않습니다.** 고스트는 외형(차체·보닛·스포일러·바퀴·브레이크등)만 있고 뒷면을 그리지 않아서, 차체 안에 완전히 들어가면(출발 자리 등) 거의 보이지 않고, 앞지르거나 따라잡는 순간에만 잠깐 시야가 파랗게 덮입니다. 완주 지점에 도착하면 사라집니다.
   - 설정의 `고스트 표시 켬/끔` → `TimeAttackSettings.ShowGhost`(`settings.timeAttack.showGhost`, 기본 켬). 꺼도 기록은 저장됩니다.
 - **UI에서 읽는 것** (`TimeAttackSession.Current`, 그랑프리면 null)
@@ -593,7 +595,8 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 ### 카트 파티클 (`Scripts/Effects/KartEffects.cs`, AI 차량만)
 
 - `Kart_AI_*`의 자식 `Effects`에 붙음. **드리프트 불꽃**: `DriftFX/RearLeft·RearRight/Sparks`(차 모델 뒷바퀴 바닥으로 옮김 — 세단 z -0.76, 해치백 z -0.93). 충전 단계 0 → 1 → 2마다 색이 흰색 → 주황 → 파랑. **부스트 불꽃**: `Effects/Exhaust_L·R/Flame`(차 뒤 배기구), `BoostStarted`의 지속 시간 동안.
-- 플레이어 카트에는 없습니다(운전석에서 뒤가 안 보임 — 소리·진동으로 대신).
+- 플레이어 카트에는 없습니다(운전석에서 뒤가 안 보임 — 소리·진동으로 대신). AI 차의 `DriftFX`는 Car Concept 뒷바퀴 바닥(x ±0.745, z -1.148).
+- **아이템 박스 깨짐**(`Scripts/Effects/ItemBoxBreakEffect.cs`, `ItemBox.prefab`에 붙음): `ItemBox.PickedUp` 때 `Prefabs/Effects/VFX_ItemBoxBreak`(무지개 조각 큐브 26개 + 반짝임 1장, 0.8초 뒤 스스로 삭제)를 박스 자리에 터뜨림. `ItemBox` 코드는 그대로이고 이벤트만 듣습니다. 조각 머티리얼 `VFX/VFX_Shard`(URP Particles/Unlit).
 - 머티리얼 `VFX/VFX_Spark·VFX_Flame`(URP Particles/Unlit 가산), 텍스처 `VFX_SoftDot.png`(직접 생성). 파티클 수 최대 60/40개라 Quest 부담 작음.
 
 ## 씬 흐름
