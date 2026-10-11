@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 7627809421070749375}
   - component: {fileID: 7681461508740204322}
   - component: {fileID: 8809061824960005071}
+  - component: {fileID: 4492757025263614427}
   m_Layer: 2
   m_Name: ItemBox
   m_TagString: Untagged
@@ -195,6 +196,20 @@ MonoBehaviour:
   _visual: {fileID: 853039821129658301}
   _respawnTime: 3
   _spinSpeed: 90
+--- !u!114 &4492757025263614427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6504229544906029403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bf37e5361f284f489c7d7468b9a8f74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRKart.Effects.ItemBoxBreakEffect
+  _burstPrefab: {fileID: 1441173357956854890, guid: 6675a0e35fead5e469ec201deffda5ef, type: 3}
+  _offset: {x: 0, y: 0.9, z: 0}
 --- !u!1 &8217623987965399441
 GameObject:
   m_ObjectHideFlags: 0
