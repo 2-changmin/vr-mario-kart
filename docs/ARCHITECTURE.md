@@ -411,6 +411,7 @@ namespace VRKart.Core
 - 해(`Directional Light`)는 **Mixed**(Baked Indirect): 직접광·그림자는 예전처럼 실시간이고, 튄 빛만 프로브에 들어갑니다. 설정은 `Settings/Lighting/<씬>_Lighting.asset`, 결과는 `Scenes/<씬>/LightingData.asset`.
 - 라이트 프로브는 **카트·아이템·고스트처럼 움직이는 것만** 씁니다. 카트가 아닌 렌더러(건물·나무, 생성되는 도로·지형, `ChunkCombiner` 칸 메시)는 Light Probes = Off라 기본 환경광 그대로입니다(큰 메시를 프로브 한 점으로 칠하면 어색해서). 새 장식을 넣으면 굽기를 한 번 더 누르면 같이 Off가 됩니다.
 - 안개: 지평선 하늘색 (0.68, 0.76, 0.88), 서킷 100~600m, 캠퍼스 120~950m.
+- ⚠️ `Scenes/<씬>/LightingData.asset`은 Unity가 **바이너리**로 저장합니다. `.gitattributes`의 `*.asset` 텍스트 규칙(줄바꿈 변환)에서 빼 두었습니다(`**/LightingData.asset binary`) — 빠지면 커밋할 때 파일이 깨져 "Unknown error occurred while loading LightingData.asset"이 나고 라이트 프로브가 적용되지 않습니다.
 
 ## 체크포인트 & 랩 규칙
 

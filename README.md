@@ -55,6 +55,8 @@ Quest 2에서 실제 크기 스포츠카 운전석에 앉아 **손으로 핸들�
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 폴더 구조, 씬 구성, 주요 컴포넌트와 인터페이스 약속 |
 | [docs/DEVICE.md](docs/DEVICE.md) | 타깃 기기(Quest 2) 스펙, 시야각·UI·성능 기준값, Unity 설정, 실기기 테스트·대여 기기 관리 |
 | [docs/ASSETS.md](docs/ASSETS.md) | 사용할 외부 에셋 목록, 라이선스 규칙, 가져오기 규칙, 에셋 등록부/크레딧 |
+| [docs/TEST_CHECKLIST.md](docs/TEST_CHECKLIST.md) | 통합 테스트 체크리스트(PC 자동 / Quest) — 메뉴 → 레이스 → 결과 → 재시작 → 메뉴 |
+| [docs/SSQ_TEST.md](docs/SSQ_TEST.md) | 멀미 저감 효과 평가(SSQ) — 진행 순서, 안내문, 설문지, 기록·점수 계산 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | **작업 규칙** — 이슈 → 브랜치 → PR → 리뷰 → 머지 |
 
 ---

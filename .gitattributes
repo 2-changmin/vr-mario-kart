@@ -4,6 +4,8 @@
 *.unity    text merge=unityyamlmerge eol=lf
 *.prefab   text merge=unityyamlmerge eol=lf
 *.asset    text merge=unityyamlmerge eol=lf
+# 라이트 굽기 결과(LightingData.asset)는 Unity가 바이너리로 저장 → 줄바꿈 변환하면 깨짐 (#61)
+**/LightingData.asset binary
 *.mat      text merge=unityyamlmerge eol=lf
 *.anim     text merge=unityyamlmerge eol=lf
 *.controller text merge=unityyamlmerge eol=lf
