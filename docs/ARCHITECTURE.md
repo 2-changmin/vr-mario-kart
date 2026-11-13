@@ -317,8 +317,8 @@ namespace VRKart.Core
 | `Track` | **`TrackLayout`**(중심선) + **`TrackMeshBuilder`**(도로 메시). 아래 참고 |
 | `Track/* (generated)` | 도로(`Road`), 흰 가장자리 선, 커브 연석(빨강/흰), 갓길(`Grass`), 벽(`Wall`). **씬에 저장되지 않고** 켜질 때마다 만들어집니다(`HideFlags.DontSave`) |
 | `Props/Track_StartLine`, `Props/Track_StartGrid` | `Track_Test`와 같은 위치 |
-| `Environment/Ground_Grass` | 1200m x 1200m 바닥 (`Grass`) |
-| `Environment/Scenery` | Kenney 모델 장식 (약 830개, 모두 Static): 결승선 게이트, 관중석 10, 피트 6, 조명탑, 깃발, 코너 배너 탑, 광고판, 텐트, 나무 320, 바위, 덤불, 꽃, 풀, 통나무. 모두 벽에서 떨어져 있어 주행에 닿지 않습니다 |
+| `Environment/Ground_Grass` | 1200m x 1200m 바닥 (`Grass`), `Circuit_Grass` — 잔디 깎은 줄무늬 텍스처(`Textures/Track/Circuit_Grass.png`, 직접 생성, 한 장 20m·줄 10m) |
+| `Environment/Scenery` | Kenney 모델 장식: 결승선 게이트, 관중석 10, 피트 6, 조명탑, 깃발, 코너 배너 탑, 광고판, 텐트(이상 Static), **나무 320·덤불 160·바위 50은 그룹마다 `ChunkCombiner`(200m 칸, 그림자 없음, Static 끔)**. 실사 차와 어울리게 잎은 짙은 `Campus_DarkLeaf_*`, 덤불·바위 윗면 `Campus_Hedge`, 바위 `Campus_Stone`. 만화풍 꽃·풀 무더기·통나무는 뺐습니다. 모두 벽에서 떨어져 있어 주행에 닿지 않습니다 |
 | `RaceTrack/Checkpoint_00~40` | 체크포인트 41개 (약 25m 간격, 버튼으로 배치) |
 | `Props/ItemBoxes` | 아이템 박스 3줄 × 4개(2.5m 간격): 메인 직선 110m, 2번째 90° 뒤 직선 445m, 뒷 직선 870m (출발점 기준 중심선 거리) |
 | `Props/JumpRamps/JumpRamp_1` | `Track_JumpRamp`(경사 7°, 높이 약 1.1m, 길이 9m) — 뒷 직선 818m. 착지(약 845m) 뒤에 아이템 박스(871m) |
@@ -343,7 +343,7 @@ namespace VRKart.Core
   - 테스트 씬 `Scenes/Sandbox/Seunghee_Slopes.unity`: `Track_Main` 복사본에 최고 8m 언덕 두 개(최대 경사 6.7%, 꼭대기 반지름 468m). 4대 3랩 자동 주행에서 **공중에 뜬 시간 0초, 리스폰 0**, 기록은 평지와 비슷(AI 1 184.9s).
   - **카트 검증 (#50, `Track_Campus` 최대 15%)**: 조작 잠금(카운트다운)·정지 상태로 8.1° 경사에서 4초 동안 밀림 **0m**(수정 전 10cm — 중력 경사 성분 상쇄로 해결). AI 3대가 부스트·대시 패드를 쓰며 달리는 동안 언덕 꼭대기에서 공중에 뜬 기록 **0건**, 끼임 **0건**. 꼭대기 반지름 130m는 부스트 27m/s에서도 뜨지 않는 값(구심 가속도 5.6m/s² < 중력).
 - 반지름은 도로 중심 기준입니다. **반지름 12m 미만은 피하세요**(안쪽 갓길·벽이 겹침). 평행한 구간은 중심선끼리 **24m 이상** 떨어뜨립니다(벽 바깥끼리 7m).
-- `TrackMeshBuilder`: 폭(도로 10, 연석 1, 갓길 3, 벽 두께 0.5·높이 1m)과 머티리얼(`Track_Road`, `Track_LineWhite`, `Track_Curb`, `Track_Runoff`, 벽 = `Track_Curb`). 레이어는 도로·선·연석 `Road`, 갓길 `Grass`, 벽 `Wall`.
+- `TrackMeshBuilder`: 폭(도로 10, 연석 1, 갓길 3, 벽 두께 0.5·높이 1m)과 머티리얼 — 도로 `Circuit_Asphalt`(Road012A 아스팔트), 선 `Track_LineWhite`, 연석 `Track_Curb`(빨강·흰 줄), 갓길 `Circuit_Runoff`(녹색 도장 아스팔트), 벽 `Circuit_Wall`(흰 도장 콘크리트), 둑 `Circuit_GrassBank`. (`Track_Test`는 예전 단색 `Track_*` 그대로) 레이어는 도로·선·연석 `Road`, 갓길 `Grass`, 벽 `Wall`.
 - `Track_Test`에도 아이템 박스 2줄(85m, 535m)·대시 패드 2개(335m, 680m)를 직선 구간에 놓았습니다(AI 아이템 테스트용).
 
 **성능 (#8, 에디터 측정 — Quest 실측은 #15)**
@@ -396,7 +396,7 @@ namespace VRKart.Core
 - `RaceTrack.DirectionAt(position, nearIndex)`: 역주행 판정 방향을 다음 체크포인트 앞뒤 구간에서만 찾음 → 공유 도로에서 옆 차로 방향을 잡지 않음(`RaceProgress`가 사용).
 - **텍스처**(ambientCG CC0, `Assets/ThirdParty/AmbientCG/`, 색상 1024px + 노멀 512px, 합계 1.2MB): 아스팔트 `Campus_Road`(Road012A), 붉은·회색 보도블록(PavingStones128, 색 입힘), 석축(Bricks100), 콘크리트(Concrete031: 바닥·비탈·계단·연석), 건물 외벽 회반죽(Plaster002, 색별), 기숙사 붉은 벽돌(Bricks085). 서킷의 `Track_*` 재질은 그대로.
 - **건물 외벽 사진 텍스처**(ambientCG Facade CC0 5종, 색상 1024px + 노멀 256px, 합계 약 0.9MB, 재질 `Campus_FacadeTex_*`): 캠퍼스 흰 건물·고층 = Facade006(흰 격자), 연회색·라벤더 = Facade019A(회색 콘크리트 격자), 기숙사 붉은 벽돌·동네 상가 일부 = Facade018A, 아파트·상가 일부 = Facade020A(갈색 격자), 동네 8층 이상·일부 = Facade001(유리 커튼월). 텍스처 한 장 = 6~10층으로 UV를 맞춰 창문 줄이 층과 맞음(v = (높이 - 1층 바닥) / (층수 × 층 높이)). 텍스처를 쓰는 건물은 예전 창문 띠 상자를 만들지 않음. 동네 상가 일부는 예전 단색 + 창문 띠(색 다양성), 체육관은 그대로. 3층 이상 건물 옥상에 콘크리트 난간(0.9m).
-- **성능**(운전자 시점 추정, `ChunkCombiner` 적용 후): 그리기 호출 최대 약 720 / 평균 약 300(서킷 최대 약 990), 삼각형 최대 약 25만. 주차된 차 17대·출발선 칸도 `ChunkCombiner`. 실기기 프레임은 #15에서 확인 필요.
+- **성능**(운전자 시점 추정, `ChunkCombiner` 적용 후): 그리기 호출 최대 약 720 / 평균 약 300(서킷은 스타일 정리 후 최대 약 560, 전 약 990), 삼각형 최대 약 25만. 주차된 차 17대·출발선 칸도 `ChunkCombiner`. 실기기 프레임은 #15에서 확인 필요.
 - 머티리얼 `Materials/Environment/Campus_*`(URP Lit): Building·Window·Sign·White·Stone·Hedge·Granite·Concrete·Paving·PaintYellow·RoofGray·RoofGreen·RoofBlue·Turf·TrackRed·Dirt·ForestGround·Ground·Curb·CourtBlue·Asphalt·DarkLeaf_*.
 - **자동 주행 테스트**(4대 모두 AI, 3랩, 최종 코스 + 재질·배치·분위기·캠퍼스 밖 거리): 전원 완주(309.1s ~ 336.4s), **공중에 뜬 시간 0초, 리스폰 0**, 3m/s 이하 정체 최장 1.5초, 아이템 사용 32회.
 - 메인 메뉴의 **`트랙: 서킷 / 동아대 캠퍼스`** 버튼으로 고릅니다(아래 메뉴 절).
@@ -409,6 +409,7 @@ namespace VRKart.Core
 - **반사 프로브** `Environment/ReflectionProbes`: 트랙을 따라 70m마다(서킷 15개, 캠퍼스 24개), 140 x 70 x 140m 상자를 겹쳐서 섞임. 128px 큐브맵 `Textures/ReflectionProbes/<씬>/Probe_NN.exr`(Custom 모드, 합계 약 4.7MB). 차 도장·크롬·유리에 하늘만이 아니라 주변 도로·잔디·건물이 비칩니다.
 - **라이트 프로브** `Environment/LightProbes`: 트랙을 따라 8m마다 좌·중·우(±6m) × 높이 0.4·2.6m(서킷 774개, 캠퍼스 1,248개). 건물 사이·나무 아래에서 하늘빛이 가려져 카트가 어두워지고, 주변에서 튄 빛 색을 받습니다.
 - 해(`Directional Light`)는 **Mixed**(Baked Indirect): 직접광·그림자는 예전처럼 실시간이고, 튄 빛만 프로브에 들어갑니다. 설정은 `Settings/Lighting/<씬>_Lighting.asset`, 결과는 `Scenes/<씬>/LightingData.asset`.
+- ⚠️ **`ChunkCombiner`로 합치는 모델은 Import Settings의 Read/Write를 켜야 합니다.** 빌드에서는 Read/Write가 꺼진 메시를 합칠 수 없어서(에디터에서는 항상 읽혀 안 드러남) 예전에는 Quest에서 캠퍼스 나무가 사라질 수 있었습니다. 지금 합치는 Kenney 모델(나무·덤불·바위·Car Kit)은 모두 켜 두었고, `ChunkCombiner`는 읽을 수 없는 메시를 만나면 합치지 않고 그대로 그리며 경고를 남깁니다.
 - 라이트 프로브는 **카트·아이템·고스트처럼 움직이는 것만** 씁니다. 카트가 아닌 렌더러(건물·나무, 생성되는 도로·지형, `ChunkCombiner` 칸 메시)는 Light Probes = Off라 기본 환경광 그대로입니다(큰 메시를 프로브 한 점으로 칠하면 어색해서). 새 장식을 넣으면 굽기를 한 번 더 누르면 같이 Off가 됩니다.
 - 안개: 지평선 하늘색 (0.68, 0.76, 0.88), 서킷 100~600m, 캠퍼스 120~950m.
 - ⚠️ `Scenes/<씬>/LightingData.asset`은 Unity가 **바이너리**로 저장합니다. `.gitattributes`의 `*.asset` 텍스트 규칙(줄바꿈 변환)에서 빼 두었습니다(`**/LightingData.asset binary`) — 빠지면 커밋할 때 파일이 깨져 "Unknown error occurred while loading LightingData.asset"이 나고 라이트 프로브가 적용되지 않습니다.
