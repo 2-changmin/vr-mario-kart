@@ -11,6 +11,7 @@ namespace VRKart.Race
         public const string TrackTest = "Track_Test";
         public const string TrackCampus = "Track_Campus";
         public const string TrackBridge = "Track_Bridge";
+        public const string TrackCampusNight = "Track_CampusNight";
 
         public static bool Load(string sceneName)
         {
