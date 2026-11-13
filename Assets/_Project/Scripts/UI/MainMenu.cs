@@ -53,6 +53,7 @@ namespace VRKart.UI
         {
             (SceneLoader.TrackMain, "서킷"),
             (SceneLoader.TrackCampus, "동아대 캠퍼스"),
+            (SceneLoader.TrackBridge, "광안대교 야간"),
         };
         private static int s_trackIndex;
 

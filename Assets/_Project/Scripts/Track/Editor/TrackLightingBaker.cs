@@ -35,7 +35,7 @@ namespace VRKart.Track.Editor
         // 배치 모드용: -executeMethod VRKart.Track.Editor.TrackLightingBaker.BakeAllTracks
         public static void BakeAllTracks()
         {
-            foreach (var path in new[] { "Assets/_Project/Scenes/Track_Main.unity", "Assets/_Project/Scenes/Track_Campus.unity" })
+            foreach (var path in new[] { "Assets/_Project/Scenes/Track_Main.unity", "Assets/_Project/Scenes/Track_Campus.unity", "Assets/_Project/Scenes/Track_Bridge.unity" })
             {
                 EditorSceneManager.OpenScene(path);
                 Bake(path);
