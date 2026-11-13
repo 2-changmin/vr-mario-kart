@@ -425,6 +425,16 @@ namespace VRKart.Core
 - **성능**(운전자 시점 추정): 그리기 호출 최대 약 350 / 평균 약 110, 삼각형 최대 약 26만(차 4대 포함) — 세 트랙 중 가장 가벼움.
 - 확인: 4대 AI 주행 완주, 공중 0, 리스폰 0, 오류 0.
 
+## 캠퍼스 야간 (`Track_CampusNight.unity`, #67)
+
+`Track_Campus`를 복사해 **코스·건물·배치는 그대로** 두고 밤으로 바꾼 트랙입니다(맵 하나를 적은 비용으로 추가). 캠퍼스를 고치면 이 씬도 같이 고쳐야 합니다.
+
+- **재질 교체**(씬에서만, 원본 재질은 그대로): 사진 외벽 6종 `Campus_FacadeTex_*` → 창문 불빛 외벽 `CampusNight_Facade*`(Unlit, `Night_Windows.png`를 원래 층수에 맞춰 타일링), 창문 띠 `Campus_Window` → 따뜻한 불빛, 가로등 머리·간판·신호등 → 발광(Unlit). 나머지 벽·나무·지형은 Lit 그대로라 달빛에 어둡게 보입니다.
+- **노면 불빛 웅덩이** `Environment/NightPools`: 가로등 메시에서 머리 위치(59곳)를 찾아, 트랙 16m 안의 51곳 아래 노면에 `Night_LightPool`(가산) 사각형. 메시 `Models/Bridge/CampusNight_LightPools.asset`.
+- 밤하늘·달·환경광·안개는 광안대교와 같은 값(안개 160~1000m), `NightLights`(`TrackNightLights`)로 플레이어 전조등.
+- 메뉴 `캠퍼스 야간`, `SceneLoader.TrackCampusNight`, 빌드 씬 목록, `TrackLightingBaker.BakeAllTracks` 목록에 추가.
+- 성능은 캠퍼스와 같음(불빛 웅덩이 +1 드로우콜, 전조등 스포트라이트 1개). 4대 주행 완주·리스폰 0·오류 0.
+
 ## 트랙 조명 (반사·라이트 프로브)
 
 `Track_Main`·`Track_Campus`는 라이트맵 없이 **프로브만** 굽습니다. 도로·지형(`TrackMeshBuilder`·`TrackTerrain`)이 실행 중에 만들어져서 라이트맵을 저장할 수 없고, 프로브는 Quest에서 거의 공짜이기 때문입니다.
