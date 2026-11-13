@@ -14,6 +14,8 @@ namespace VRKart.Core
 
         public int ChunkCount { get; private set; }
 
+        private static int s_unreadable;
+
         private void Awake() => Combine();
 
         public void Combine()
@@ -26,6 +28,8 @@ namespace VRKart.Core
                 var filter = renderer.GetComponent<MeshFilter>();
                 if (filter == null || filter.sharedMesh == null) continue;
                 Mesh mesh = filter.sharedMesh;
+                // 빌드에서는 Read/Write가 꺼진 메시를 합칠 수 없다(에디터에서는 항상 읽혀서 안 드러남) → 그대로 둔다
+                if (!mesh.isReadable) { s_unreadable++; continue; }
                 Vector3 c = renderer.bounds.center;
                 int cx = Mathf.FloorToInt(c.x / _cellSize), cz = Mathf.FloorToInt(c.z / _cellSize);
                 Material[] materials = renderer.sharedMaterials;
@@ -52,6 +56,11 @@ namespace VRKart.Core
             }
             foreach (var renderer in sources) renderer.enabled = false;
             ChunkCount = groups.Count;
+            if (s_unreadable > 0)
+            {
+                Debug.LogWarning($"[ChunkCombiner] {name}: Read/Write가 꺼진 메시 {s_unreadable}개는 합치지 않고 그대로 그림 (모델 Import Settings에서 Read/Write 켜기)", this);
+                s_unreadable = 0;
+            }
         }
     }
 }
