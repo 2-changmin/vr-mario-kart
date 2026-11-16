@@ -52050,7 +52050,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db682165a1c578e4d8543984cd18cc88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VRKart.Race.RaceTrack
-  _totalLaps: 3
+  _totalLaps: 2
 --- !u!4 &909482663
 Transform:
   m_ObjectHideFlags: 0

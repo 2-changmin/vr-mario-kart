@@ -17,7 +17,8 @@ namespace VRKart.Race.Editor
 {
     // 통합 자동 테스트(#16, docs/TEST_CHECKLIST.md):
     //   메뉴 → 그랑프리(Track_Main) → 일시정지/재개 → 완주·결과 → 재시작 → 일시정지 → 메뉴
-    //   → 타임어택 → 완주·기록 저장 → 재시작 → 고스트 재생 → 메뉴.
+    //   → 타임어택 → 완주·기록 저장 → 재시작 → 고스트 재생 → 메뉴
+    //   → 메뉴의 트랙 목록 전체를 차례로: 로드 → 출발 → 8초 주행(참가자 4명, 플레이어 전진, 오류 없음) → 메뉴.
     // 플레이어 카트도 AI 입력으로 바꾸고 4배속(약 2분). 버튼은 화면을 누르는 대신 각 UI의 Button.onClick을 직접 부른다.
     // 메뉴 VRKart > 통합 자동 테스트, 배치 모드 -executeMethod VRKart.Race.Editor.RaceFlowSmokeTest.Start
     // 결과: Logs/RaceFlowTest.txt (+ 콘솔). 내 서킷 타임어택 기록(persistentDataPath/TimeAttack/Track_Main.ghost)은
@@ -35,6 +36,8 @@ namespace VRKart.Race.Editor
         private static bool s_swapped, s_pausedOnce, s_ghostSeen;
         private static Vector3 s_ghostPos;
         private static int s_pass, s_fail;
+        private static int s_trackIndex;
+        private static Vector3 s_startPos;
 
         private static string Out => Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs"));
         private static string GhostFile => Path.Combine(Application.persistentDataPath, "TimeAttack", "Track_Main.ghost");
@@ -231,12 +234,53 @@ namespace VRKart.Race.Editor
                 }
                 case "menu3":
                 {
-                    if (Object.FindAnyObjectByType<MainMenu>() == null || t < 1f) return;
+                    var menu = Object.FindAnyObjectByType<MainMenu>();
+                    if (menu == null || t < 1f) return;
                     Check("타임어택 → 메뉴로", true);
-                    Finish();
+                    if (TimeAttackSettings.IsTimeAttack) Click(menu, "_modeButton");
+                    s_trackIndex = 0;
+                    StartTrack(menu);
+                    return;
+                }
+                case "track":
+                {
+                    if (!s_swapped)
+                    {
+                        if (t < 1f || !SwapToAi()) return;
+                        s_swapped = true;
+                        s_startPos = s_rm.Player.transform.position;
+                        return;
+                    }
+                    if (s_rm.State != RaceState.Racing || s_rm.RaceTime < 8f) return;
+                    string scene = s_rm.gameObject.scene.name;
+                    float moved = Vector3.Distance(s_rm.Player.transform.position, s_startPos);
+                    Check($"{scene}: 로드·출발", Object.FindObjectsByType<RaceProgress>(FindObjectsSortMode.None).Length == 4 && moved > 25f, $"8초에 {moved:F0}m, {s_rm.Player.TotalLaps}랩");
+                    var pause = Object.FindAnyObjectByType<PauseMenu>(FindObjectsInactive.Include);
+                    s_rm.Pause();
+                    Click(pause, "_menuButton");
+                    Next("trackMenu");
+                    return;
+                }
+                case "trackMenu":
+                {
+                    var menu = Object.FindAnyObjectByType<MainMenu>();
+                    if (menu == null || t < 1f) return;
+                    s_trackIndex++;
+                    if (s_trackIndex < TrackCount()) StartTrack(menu); else Finish();
                     return;
                 }
             }
+        }
+
+        private static int TrackCount() =>
+            ((System.Array)typeof(MainMenu).GetField("Tracks", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null)).Length;
+
+        // 메뉴의 트랙 번호를 직접 정하고 시작 버튼을 누른다
+        private static void StartTrack(MainMenu menu)
+        {
+            typeof(MainMenu).GetField("s_trackIndex", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, s_trackIndex);
+            Click(menu, "_startButton");
+            Next("track");
         }
 
         private static void Finish()
