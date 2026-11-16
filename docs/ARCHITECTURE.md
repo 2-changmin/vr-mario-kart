@@ -434,6 +434,17 @@ namespace VRKart.Core
 - 에디터에서 켜기: 메뉴 **VRKart > 화질 > PC 시연 화질** → Play. 끝나면 **Quest 화질**로 되돌리기(현재 단계가 `ProjectSettings/QualitySettings.asset`에 저장되므로 **PC로 둔 채 커밋하지 않기**). Windows 빌드는 기본이 PC 단계.
 - 넣지 않는 것: 모션 블러, 화면 흔들림, FOV 변화(NFR-03).
 
+## PC 시연용 입체 건물 (`Campus/Buildings_PC`, #67)
+
+캠퍼스 건물은 평평한 면에 외벽 사진을 붙인 구조라 가까이서 가짜처럼 보였습니다. **PC 시연 화질에서만** 트랙 60m 안의 벽을 입체 외벽으로 바꿉니다. Quest(Mobile)는 원래 가벼운 건물 그대로입니다.
+
+- **도구**: `Track_Campus`를 열고 **VRKart > 캠퍼스 > PC용 입체 건물 다시 만들기** (`Scripts/Track/Editor/CampusBuildingsPcBuilder.cs`). `Campus/Buildings`의 벽 메시(면 4정점)를 읽어 다시 만듭니다. 건물 위치·높이·색은 원래 데이터(OSM 윤곽 + 위성·로드뷰를 눈으로 보고 정한 값) 그대로입니다. 지도 이미지는 가져오지 않습니다.
+- **입체 외벽**(벽 574면, 창문 11,860개): 기단(0.9m 석재) → 층(3m)·칸(2.8m)마다 창대·인방·기둥 → **깊이 0.22m 창 개구부**(창틀 면에 그림자가 짐) → 유리(매끈한 푸른 회색, 하늘·주변이 비침, 16%는 블라인드) + 가운데 창살. 유리 건물(`FacadeTex_Glass`)은 커튼월(창 82% 높이, 얇은 멀리언).
+- **재질** `Materials/CampusPC/`: 벽 종류별 회반죽·콘크리트·벽돌(ambientCG 색 + 요철 맵), 유리·블라인드·창틀·기단.
+- 먼 벽(60m 밖)·옥탑·먼 창문 띠는 원래 재질·UV 그대로 복사합니다. 지붕·간판·차양·실외기는 원래 것을 같이 씁니다.
+- **켜고 끄기**: `Campus/QualityTier`(`Scripts/Core/QualityTierObjects.cs`)가 시작할 때 PC 단계면 `Buildings_PC`를 켜고 원래 벽·창문 띠를 끕니다. 씬에는 `Buildings_PC`가 꺼진 채 저장됩니다.
+- 메시 `Models/Campus/Campus_BuildingsPC.asset`(삼각형 약 19만 — PC 전용). 캠퍼스 야간에는 넣지 않습니다(`NightTrackBuilder`가 뺌).
+
 ## 실사화 디자인 — 나무·땅·아이템 박스 (#67)
 
 실사 차와 어울리게 남아 있던 로우폴리·단색 요소를 바꿨습니다. 외부 에셋 없이 메시·텍스처를 직접 만들었습니다.
