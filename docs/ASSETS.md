@@ -171,6 +171,17 @@ Assets/
 | ambientCG 텍스처 11종 — Road012A, PavingStones128, Bricks100, Concrete031, Plaster002, Bricks085, **건물 외벽 Facade006·Facade019A·Facade018A·Facade020A·Facade001**(2026-10-06 추가, 노멀 256px) (1K-JPG에서 Color·NormalGL만, 색상 1024px·노멀 512px로 줄임) | https://ambientcg.com | CC0 1.0 (`LICENSE.txt` 동봉) | `Assets/ThirdParty/AmbientCG/` | `Track_Campus` 도로·보도·석축·콘크리트·건물 외벽 재질 (`Materials/Environment/Campus_*`, 외벽 사진 `Campus_FacadeTex_*`) | 윤승희 / #48 캠퍼스 다듬기 PR |
 | (참고 데이터, 레포에 파일 없음) 캠퍼스 트랙 축척·높이 — OpenStreetMap 도로(지도 이미지 축척 맞추기)·**건물 윤곽 300동**(Track_Campus 건물), 구글 지도 위성사진(지붕 색·운동장·숲 위치 참고만, 이미지 저장 안 함), SRTM 30m·ASTER GDEM 30m 표고(OpenTopoData로 코스 위 111점 조회) | https://www.openstreetmap.org , https://www.opentopodata.org | OSM: ODbL / SRTM: 퍼블릭 도메인 / ASTER GDEM: NASA·METI 무료 사용 | 없음 (`TrackLayout` Rise 값, 씬 안 건물 메시로만 반영) | `Track_Campus` 코스 길이·높이 (#48). 지도·로드뷰 화면은 참고만, 레포에 넣지 않음 | 윤승희 / #48 캠퍼스 트랙 PR |
 
+### 직접 만든 텍스처 (외부 출처 없음)
+
+Python(numpy·PIL)으로 만든 절차적 텍스처입니다. 라이선스 제약이 없습니다.
+
+| 파일 | 내용 | 쓰는 곳 |
+| --- | --- | --- |
+| `Textures/Track/Circuit_Grass.png` | 잔디 깎은 줄무늬 | 서킷 바닥 |
+| `Textures/Night/Night_Sky·Night_Windows·Night_Beam·Night_Chevron.png` | 밤하늘, 창문 불빛, 전조등 불빛, 급커브 화살표 | 야간 트랙 |
+| `Textures/Nature/Nature_Leaves·Bark·Grass·Dirt·Roof.png` | 잎, 나무껍질, 풀, 흙, 옥상 | 나무·땅·옥상 재질 |
+| `Textures/Nature/ItemBox_Panel.png` | 아이템 박스 물음표 패널(글꼴 Arial Bold로 그린 "?") | 아이템 박스 |
+
 ## 7. 크레딧
 
 CC0는 표기 의무가 없지만 예의상, **CC-BY는 의무로** 발표 자료 마지막 장과 결과/크레딧 화면에 적습니다.
