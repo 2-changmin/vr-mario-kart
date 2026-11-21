@@ -118,6 +118,12 @@ namespace VRKart.Race.Editor
                     var menu = Object.FindAnyObjectByType<MainMenu>();
                     if (menu == null || t < 1f) return;
                     Check("메인 메뉴 열림", true);
+                    // 차고 로비(#66): 처음엔 타이틀 → 누르면 메뉴, 턴테이블 위 전시 차
+                    var titlePanel = Field<GameObject>(menu, "_titlePanel");
+                    Check("타이틀 화면 먼저", titlePanel != null && titlePanel.activeSelf);
+                    Click(menu, "_titleButton");
+                    Check("타이틀 → 메뉴", !titlePanel.activeSelf && Field<GameObject>(menu, "_mainPanel").activeSelf);
+                    Check("차고 로비: 턴테이블·전시 차", Object.FindAnyObjectByType<Turntable>() != null && GameObject.Find("Lobby/Turntable/ShowcaseCar") != null);
                     Click(menu, "_settingsButton"); Check("설정 열기", menu.IsSettingsOpen);
                     Click(menu, "_backButton"); Check("설정 닫기(뒤로)", !menu.IsSettingsOpen);
                     var tracks = (System.Array)typeof(MainMenu).GetField("Tracks", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
@@ -129,6 +135,8 @@ namespace VRKart.Race.Editor
                         Click(menu, "_trackButton");
                     }
                     Check("트랙 버튼으로 서킷 선택", Text(menu, "_trackText").Contains("서킷"), Text(menu, "_trackText"));
+                    Click(menu, "_prevTrackButton"); Click(menu, "_trackButton");
+                    Check("트랙 카드: < > 왕복, 썸네일·정보", Text(menu, "_trackText").Contains("서킷") && Field<RawImage>(menu, "_trackThumbnail").texture != null && Text(menu, "_trackInfoText").Contains("랩"), Text(menu, "_trackInfoText"));
                     if (TimeAttackSettings.IsTimeAttack) Click(menu, "_modeButton");
                     Check("모드 = 그랑프리", !TimeAttackSettings.IsTimeAttack, Text(menu, "_modeText"));
                     Click(menu, "_startButton");
@@ -142,6 +150,7 @@ namespace VRKart.Race.Editor
                         if (t < 1f || !SwapToAi()) return;
                         s_swapped = true;
                         Check("레이스 씬 로드", s_rm.gameObject.scene.name == "Track_Main", s_rm.gameObject.scene.name);
+                        Check("씬 전환 페이드(비동기 로드)", GameObject.Find("SceneFader") != null);
                         Check("참가자 4명", Object.FindObjectsByType<RaceProgress>(FindObjectsSortMode.None).Length == 4);
                         return;
                     }
