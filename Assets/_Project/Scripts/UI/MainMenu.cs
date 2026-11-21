@@ -10,7 +10,7 @@ using VRKart.XR;
 namespace VRKart.UI
 {
     // 메인 메뉴(차고 로비, #66): 타이틀("트리거를 눌러 시작") → 트랙 카드(썸네일·길이·랩 수·내 타임어택 최고 기록, ◀ ▶로 고르기, #48)
-    // / 모드 선택(그랑프리 / 타임어택, #47) / 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지, 고스트 표시) / 종료.
+    // / 모드 선택(그랑프리 / 타임어택, #47) / 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지, 고스트 표시, 시점 1인칭/3인칭 #64) / 종료.
     // XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 앞(옆으로 조금 비켜서, 턴테이블 위 차가 보이게)에 놓는다.
     public sealed class MainMenu : MonoBehaviour
     {
@@ -56,6 +56,10 @@ namespace VRKart.UI
         [SerializeField] private TMP_Text _modeText;
         [SerializeField] private Button _ghostButton;
         [SerializeField] private TMP_Text _ghostText;
+
+        [Header("시점 (ViewSettings, #64)")]
+        [SerializeField] private Button _viewButton;
+        [SerializeField] private TMP_Text _viewText;
 
         [Header("멀미 저감 (ComfortSettings, #6)")]
         [SerializeField] private Button _comfortButton;
@@ -111,6 +115,7 @@ namespace VRKart.UI
             UpdateVolumeText();
             UpdateComfortText();
             UpdateGhostText();
+            UpdateViewText();
             if (_titlePanel != null) _titlePanel.SetActive(false);
             _mainPanel.SetActive(false);
             _settingsPanel.SetActive(true);
@@ -153,6 +158,7 @@ namespace VRKart.UI
             if (_comfortSlider != null) _comfortSlider.onValueChanged.AddListener(HandleComfortChanged);
             if (_horizonButton != null) _horizonButton.onClick.AddListener(ToggleHorizon);
             if (_ghostButton != null) _ghostButton.onClick.AddListener(ToggleGhost);
+            if (_viewButton != null) _viewButton.onClick.AddListener(ToggleView);
         }
 
         private void OnDisable()
@@ -172,6 +178,7 @@ namespace VRKart.UI
             if (_comfortSlider != null) _comfortSlider.onValueChanged.RemoveListener(HandleComfortChanged);
             if (_horizonButton != null) _horizonButton.onClick.RemoveListener(ToggleHorizon);
             if (_ghostButton != null) _ghostButton.onClick.RemoveListener(ToggleGhost);
+            if (_viewButton != null) _viewButton.onClick.RemoveListener(ToggleView);
         }
 
         // 트랙 선택 버튼이 없으면 Race Scene 그대로
@@ -223,6 +230,7 @@ namespace VRKart.UI
             GameSettings.Save();
             ComfortSettings.Save();
             TimeAttackSettings.Save();
+            ViewSettings.Save();
             ShowMain();
         }
 
@@ -269,6 +277,18 @@ namespace VRKart.UI
         {
             TimeAttackSettings.ShowGhost = !TimeAttackSettings.ShowGhost;
             UpdateGhostText();
+        }
+
+        // 1인칭(운전석) ↔ 3인칭(차 뒤·위). 다음 출발부터 적용
+        private void ToggleView()
+        {
+            ViewSettings.ThirdPerson = !ViewSettings.ThirdPerson;
+            UpdateViewText();
+        }
+
+        private void UpdateViewText()
+        {
+            if (_viewText != null) _viewText.text = ViewSettings.ThirdPerson ? "3인칭" : "1인칭";
         }
 
         private void UpdateGhostText()
