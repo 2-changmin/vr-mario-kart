@@ -13,6 +13,18 @@ namespace VRKart.Core.Editor
         [MenuItem("VRKart/화질/Quest 화질 (기본)")]
         private static void Mobile() => Set("Mobile");
 
+        // 열린 트랙 씬에 PC 시연용 조명(PcLightingOverride)을 붙인다. 값은 인스펙터에서 씬마다 조정
+        [MenuItem("VRKart/화질/열린 씬에 PC 늦은 오후 조명 추가")]
+        private static void AddLighting()
+        {
+            if (Object.FindAnyObjectByType<PcLightingOverride>() != null) { Debug.Log("[화질] 이미 PcLightingOverride가 있습니다."); return; }
+            var go = new GameObject("PcLighting");
+            go.AddComponent<PcLightingOverride>();
+            UnityEditor.Undo.RegisterCreatedObjectUndo(go, "PC 조명 추가");
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(go.scene);
+            Selection.activeGameObject = go;
+        }
+
         private static void Set(string name)
         {
             int index = System.Array.IndexOf(QualitySettings.names, name);

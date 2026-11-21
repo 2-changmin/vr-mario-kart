@@ -433,6 +433,7 @@ namespace VRKart.Core
 - `Settings/PC_RPAsset`: 그림자 거리 160m, 4096px, 4단 캐스케이드, 부드러운 그림자, MSAA 4x. `Settings/PC_Renderer`: **SSAO**(주변 음영 — 차 밑·건물 모서리).
 - 에디터에서 켜기: 메뉴 **VRKart > 화질 > PC 시연 화질** → Play. 끝나면 **Quest 화질**로 되돌리기(현재 단계가 `ProjectSettings/QualitySettings.asset`에 저장되므로 **PC로 둔 채 커밋하지 않기**). Windows 빌드는 기본이 PC 단계.
 - 넣지 않는 것: 모션 블러, 화면 흔들림, FOV 변화(NFR-03).
+- **트랙별 늦은 오후 조명** (`PcLightingOverride`, PC 단계에서만): 캠퍼스(`Campus/QualityTier`, 해 방위 230°), 서킷(`PcLighting`, 방위 300° — 관중석·벽에 빛, 차 그림자가 길게, 안개 120~1100m). 새 트랙에 붙이기: 씬을 열고 **VRKart > 화질 > 열린 씬에 PC 늦은 오후 조명 추가** → 인스펙터에서 해 방향을 맞춤. 야간 트랙에는 붙이지 않습니다.
 
 ## PC 시연용 입체 건물 (`Campus/Buildings_PC`, #67)
 
