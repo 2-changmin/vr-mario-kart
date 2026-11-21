@@ -425,6 +425,15 @@ namespace VRKart.Core
 - **성능**(운전자 시점 추정): 그리기 호출 최대 약 350 / 평균 약 110, 삼각형 최대 약 26만(차 4대 포함) — 세 트랙 중 가장 가벼움.
 - 확인: 4대 AI 주행 완주, 공중 0, 리스폰 0, 오류 0.
 
+## PC 시연 화질 (#67)
+
+발표·시연 영상은 PC 화면으로 찍으므로, **품질 단계 "PC"에서만** 화질을 올립니다. Quest(Mobile 단계)는 그대로입니다.
+
+- `Scripts/Core/PcShowcaseQuality.cs`: 실행 중 품질 단계가 PC면 씬마다 전역 후처리 볼륨(`Resources/PC_PostProcess.asset` — ACES 톤 매핑, 블룸 0.35, 노출 +0.35·대비·채도 약간, 따뜻한 색온도)을 만들고 카메라의 후처리·SMAA를 켭니다. Mobile 단계면 아무것도 하지 않습니다(씬·프리팹 수정 없음).
+- `Settings/PC_RPAsset`: 그림자 거리 160m, 4096px, 4단 캐스케이드, 부드러운 그림자, MSAA 4x. `Settings/PC_Renderer`: **SSAO**(주변 음영 — 차 밑·건물 모서리).
+- 에디터에서 켜기: 메뉴 **VRKart > 화질 > PC 시연 화질** → Play. 끝나면 **Quest 화질**로 되돌리기(현재 단계가 `ProjectSettings/QualitySettings.asset`에 저장되므로 **PC로 둔 채 커밋하지 않기**). Windows 빌드는 기본이 PC 단계.
+- 넣지 않는 것: 모션 블러, 화면 흔들림, FOV 변화(NFR-03).
+
 ## 실사화 디자인 — 나무·땅·아이템 박스 (#67)
 
 실사 차와 어울리게 남아 있던 로우폴리·단색 요소를 바꿨습니다. 외부 에셋 없이 메시·텍스처를 직접 만들었습니다.
