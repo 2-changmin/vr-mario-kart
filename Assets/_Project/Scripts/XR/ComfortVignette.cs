@@ -7,6 +7,7 @@ namespace VRKart.XR
     // 멀미는 몸(전정기관)이 느끼지 못하는 "속도 변화·회전"에서 크게 오므로, 일정한 속도로 직진할 때는 가리지 않는다.
     // 가리는 방식은 ComfortSettings.VignetteStyle:
     //   WindowTint = 차 옆유리(_windows)가 짙어짐 / Soft·Black = 메인 카메라 자식 반구(_vignette)로 화면 가장자리를 어둡게
+    // 3인칭(#64)에서는 차 유리가 시야에 없으므로 WindowTint 대신 Soft로 가린다(저장된 설정은 그대로).
     public sealed class ComfortVignette : MonoBehaviour
     {
         private static readonly int ApertureSizeId = Shader.PropertyToID("_ApertureSize");
@@ -87,6 +88,7 @@ namespace VRKart.XR
         private void Apply(float amount)
         {
             var style = ComfortSettings.VignetteStyle;
+            if (style == ComfortVignetteStyle.WindowTint && ViewModeSwitcher.IsThirdPerson) style = ComfortVignetteStyle.Soft;
             ApplyScreen(style == ComfortVignetteStyle.WindowTint ? 0f : amount, style == ComfortVignetteStyle.Black ? 1f : _softAlpha);
             ApplyWindows(style == ComfortVignetteStyle.WindowTint ? amount : 0f);
         }
