@@ -25,6 +25,7 @@
 | **Unity Companion License** (Unity 공식 패키지·샘플) | ✅ | 불필요 | Unity 프로젝트 안에서만 사용 |
 | **Pixabay Content License** | ⚠️ 가능하나 비권장 | 불필요 | "단독 재배포" 금지 조항이 있어 CC0 대체가 없을 때만 |
 | **CC-BY-NC** / **CC-BY-SA** | ❌ | — | NC는 상업 이용 금지, SA는 결과물 라이선스 전염 → 쓰지 않음 |
+| **OpenStreetMap 데이터 (ODbL)** | ⚠️ 결과물만 | ✅ "© OpenStreetMap contributors" | 공유 조건은 **데이터베이스 재배포**에 걸림 → 원본 데이터(`.osm`, GeoJSON 등)는 레포에 넣지 않고, 그걸로 만든 **메시·게임 화면(Produced Work)만** 사용 (#48 결정) |
 | **Unity Asset Store (Standard EULA)** | ❌ **커밋 금지** | — | 아래 3번 참고 |
 | 라이선스 표기 없음 / 출처 불명 | ❌ | — | 절대 사용 금지 |
 
