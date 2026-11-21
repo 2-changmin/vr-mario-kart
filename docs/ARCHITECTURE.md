@@ -127,6 +127,13 @@ namespace VRKart.Core
 - `PlayerKartInput : IKartInput`: 핸들을 잡고 있으면 핸들 각도, 아니면 왼손 스틱(데드존 0.15)으로 조향. 버튼은 [DEVICE.md](DEVICE.md) 2-4 표대로 코드에서 바인딩합니다(`PauseMenu`와 같은 방식). `UseItem`은 `WasPressedThisFrame`이라 `Update`에서 읽어야 합니다.
 - `ViewRecenter`: 시작 3프레임 뒤, 그리고 **왼손 Y**를 누를 때 머리를 `Cockpit/SeatEye`(눈 위치, forward = 카트 정면)로 옮깁니다. UI는 뜰 때의 머리 위치 기준이라 리센터해도 다시 배치되지 않습니다.
 - 차량 외형·실내(핸들 모양, 계기판, 대시보드)는 아래 [차량 비주얼 규칙](#차량-비주얼-규칙-40)을 따릅니다.
+- **3인칭 시점** (#64, FR-XR-08): 설정 `시점: 1인칭 / 3인칭` → `ViewSettings.ThirdPerson`(PlayerPrefs `settings.view.thirdPerson`, 기본 1인칭). **레이스 중에는 바꾸지 않고 다음 출발부터** 적용됩니다.
+  - `ViewModeSwitcher`(`Kart_Player` 루트, 실행 순서 -200 = `RaceHud`·`ViewRecenter`보다 먼저): 3인칭이면 `_firstPersonOnly`(`Cockpit` = 실내·핸들·유리 틴트·HUD 앵커, 1인칭용 `Car` 껍데기, 컨트롤러 손 모델 `Left/Right Controller Visual`)를 끄고 `_thirdPersonOnly`(`ExteriorCar`)를 켠 뒤, `ViewRecenter.SetEye`로 리센터 기준을 **`ChaseEye`(카트 뒤 5.0m, 위 1.8m)** 로 바꿉니다.
+  - 카메라는 `ViewPivot` 아래에서 **카트에 단단히 붙어** 따라갑니다(지연·스프링·자동 회전 없음, NFR-03). 수평 유지(`HorizonLock`)·Y 리센터·머리 회전은 1인칭과 같습니다.
+  - `ExteriorCar`: `Kart_AI_Sedan_Red`의 `Car`(바퀴·짙은 유리·브레이크등·그림자 대역, `CarVisual`)를 복사해 도장만 `CarConcept_Paint_Player_Blue`로, 레이스 번호는 뺌. 플레이어 `Car`는 1인칭용이라 바퀴·유리가 없고 실내 천장이 지붕 위로 튀어나와서 밖에서 보면 안 됩니다.
+  - 조종석이 꺼지면 `RaceHud`가 `CockpitHudAnchors`를 못 찾아 **시야 앞 패널 배치**(대시보드 ±28°, 미니맵 오른쪽 위)를 씁니다 → HUD 코드는 그대로. 핸들 잡기도 꺼지므로 **왼손 썸스틱**(PC는 키보드)으로 조향합니다.
+  - 멀미 저감: 3인칭에서는 차 유리가 시야에 없어서 `WindowTint`를 `Soft`(화면 가장자리)로 대신 씁니다(`ComfortVignette`, 저장된 설정은 그대로).
+  - 확인: 3인칭으로 통합 자동 테스트 33/33(트랙 4개 출발, 그랑프리·타임어택·고스트·일시정지·결과), 서킷·캠퍼스 주행 화면. 서킷 같은 지점 그리기 1인칭 178 → 3인칭 96, 삼각형 14.8만 → 10.4만(실내를 안 그려서).
 - **PC 운전 모드** (에디터·PC 빌드만, `#if UNITY_EDITOR || UNITY_STANDALONE`): `Race/Testing/DesktopDriveController`가 실행 시 자동으로 생기고, 헤드셋이 없으면(`XRSettings.isDeviceActive == false`) `Core/DesktopDriveMode.Active`를 켜고 **XR Interaction Simulator를 끕니다**(R = 기기 리셋, Shift = 왼손 전환 등 키가 겹쳐서). `PlayerKartInput`은 이 모드일 때만 키보드를 함께 읽습니다: T 가속, Shift 브레이크(멈추면 0), R 후진(= 계속 브레이크), J/L 조향, Space 드리프트, E 아이템. P 일시정지, F1 모드 전환. 키 표는 README.
 - 테스트 씬: `Scenes/Sandbox/Changmin_Steering.unity`. XR Interaction Simulator에서 `]`(오른손 선택) → `G`(잡기) + `Q`/`E`(위아래 이동)로 핸들 회전, `Shift+2` = 왼손 Y(리센터).
 
@@ -643,6 +650,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
   - 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않습니다.
 - **설정** (`PlayerPrefs`): `GameSettings.MasterVolume`(= `AudioListener.volume`), `AudioVolumes.Music`·`AudioVolumes.Sfx`(아래 사운드 절). 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
   - 멀미 저감(#6 `ComfortSettings`): **멀미 저감 켬/끔**(버튼) → `VignetteEnabled`, **강도** 슬라이더 → `VignetteIntensity`(끔이면 비활성), **수평 유지 켬/끔** → `HorizonLock`. `뒤로`를 누를 때 `ComfortSettings.Save()`. 방식(틴팅/가장자리)과 평가용 표시는 설정 화면에 넣지 않았습니다(기본 틴팅).
+  - 시점(#64): 고스트 표시 줄 오른쪽 **`시점 [1인칭/3인칭]`** → `ViewSettings.ThirdPerson`. `뒤로`를 누를 때 `ViewSettings.Save()`.
   - 고스트(#47): **고스트 표시 켬/끔** → `TimeAttackSettings.ShowGhost`. `뒤로`를 누를 때 `TimeAttackSettings.Save()`.
 - **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m, **눈높이 +0.08m**에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다. 결과 화면은 +0.12m. 조종석 앞유리 안(눈 기준 약 10° 아래 ~ 19° 위)에 패널 전체가 들어오게 한 값입니다(그보다 낮으면 대시보드에 가려짐).
   - XRI 기본 입력 액션에는 메뉴 버튼이 없어서, `PauseMenu`가 `<XRController>{LeftHand}/{MenuButton}` 바인딩을 직접 만듭니다.
@@ -652,7 +660,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 
 - **TMP 기본 폰트 = `Assets/_Project/Fonts/Pretendard-SemiBold SDF.asset`** (TMP Settings에서 지정). 새로 만드는 TMP 텍스트는 자동으로 이 폰트를 씁니다. 영문 대체 폰트(fallback)는 LiberationSans입니다.
 - 한글 11,172자를 다 넣으면 에셋이 수십 MB가 되므로, **UI에 쓰는 글자만 넣은 정적(Static) 아틀라스**입니다. 실행 중에 에셋이 바뀌지 않아 git에 변경이 생기지 않습니다.
-- 들어 있는 글자는 `Assets/_Project/Fonts/Pretendard_Characters.txt`입니다. ASCII 전체, 한글 109자, 결과·메뉴·설정·HUD에 쓸 단어가 들어 있습니다(#47에서 `모드 그랑프리 타임어택 고스트 표시 신기록` 줄 추가).
+- 들어 있는 글자는 `Assets/_Project/Fonts/Pretendard_Characters.txt`입니다. ASCII 전체, 한글 약 120자, 결과·메뉴·설정·HUD에 쓸 단어가 들어 있습니다(#47에서 `모드 그랑프리 타임어택 고스트 표시 신기록`, #64에서 `1인칭 3인칭 시점` 줄 추가).
 - ⚠️ **파일에 없는 한글을 쓰면 □로 나옵니다.** 새 문구를 쓸 때는:
   1. `Pretendard_Characters.txt`에 그 글자(단어)를 추가
   2. `Window > TextMeshPro > Font Asset Creator` — Source Font `Pretendard-SemiBold`, Sampling Point Size **Custom 48**, Padding **6**, Packing Optimum, Atlas **1024 x 1024**, Character Set **Characters from File** → 위 txt, Render Mode **SDFAA**
