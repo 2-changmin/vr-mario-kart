@@ -444,6 +444,8 @@ namespace VRKart.Core
 - 먼 벽(60m 밖)·옥탑·먼 창문 띠는 원래 재질·UV 그대로 복사합니다. 지붕·간판·차양·실외기는 원래 것을 같이 씁니다.
 - **켜고 끄기**: `Campus/QualityTier`(`Scripts/Core/QualityTierObjects.cs`)가 시작할 때 PC 단계면 `Buildings_PC`를 켜고 원래 벽·창문 띠를 끕니다. 씬에는 `Buildings_PC`가 꺼진 채 저장됩니다.
 - 메시 `Models/Campus/Campus_BuildingsPC.asset`(삼각형 약 19만 — PC 전용). 캠퍼스 야간에는 넣지 않습니다(`NightTrackBuilder`가 뺌).
+- **늦은 오후 조명** (`Scripts/Core/PcLightingOverride.cs`, `Campus/QualityTier`에 같이 붙음): PC 단계에서만 시작 시 해를 고도 24°·방위 230°(서남쪽)로 낮추고 따뜻한 색(1, 0.86, 0.70)·세기 1.6, 하늘 환경광은 살짝 푸르게, 옅은 대기 안개(70~780m). 건물 정면에 빛이 들고 도로·창틀에 긴 그림자가 생깁니다. 씬에 저장된 한낮 값과 구운 프로브는 그대로(Quest 영향 없음). 값은 컴포넌트 인스펙터에서 조정.
+- 유리 `CampusPC_Glass`: 푸른 회색, 매끈함 0.95·금속성 0.55 → 반사 프로브의 하늘·건물이 비칩니다.
 
 ## 실사화 디자인 — 나무·땅·아이템 박스 (#67)
 
