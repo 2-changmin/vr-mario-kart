@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 namespace VRKart.Race
 {
-    // 씬은 Build Profiles의 Scene List에 등록돼 있어야 로드된다.
+    // 씬은 Build Profiles의 Scene List에 등록돼 있어야 로드된다. 실행 중에는 SceneFader로 페이드하며 비동기 로드한다(#66).
     public static class SceneLoader
     {
         public const string MainMenu = "MainMenu";
@@ -22,7 +22,8 @@ namespace VRKart.Race
             }
 
             Time.timeScale = 1f;
-            SceneManager.LoadScene(sceneName);
+            if (Application.isPlaying) SceneFader.Load(sceneName);   // 어둡게 → 비동기 로드 → 밝게 (#66)
+            else SceneManager.LoadScene(sceneName);
             return true;
         }
 

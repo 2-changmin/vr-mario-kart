@@ -9,9 +9,21 @@ using VRKart.XR;
 
 namespace VRKart.UI
 {
-    // 메인 메뉴: 트랙 선택(서킷 / 동아대 캠퍼스, #48) / 모드 선택(그랑프리 / 타임어택, #47) / 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지, 고스트 표시) / 종료. XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 정면에 놓는다.
+    // 메인 메뉴(차고 로비, #66): 타이틀("트리거를 눌러 시작") → 트랙 카드(썸네일·길이·랩 수·내 타임어택 최고 기록, ◀ ▶로 고르기, #48)
+    // / 모드 선택(그랑프리 / 타임어택, #47) / 시작 / 설정(전체·배경음악·효과음 볼륨, 멀미 저감 켬/끔·강도, 수평 유지, 고스트 표시) / 종료.
+    // XR 트래킹이 잡힌 뒤(한 프레임 뒤) 플레이어 앞(옆으로 조금 비켜서, 턴테이블 위 차가 보이게)에 놓는다.
     public sealed class MainMenu : MonoBehaviour
     {
+        // 트랙 카드 표시용 정보 (VRKart > 로비 > 차고 로비 다시 만들기 가 채움)
+        [System.Serializable]
+        public struct TrackCard
+        {
+            public string Scene;
+            public Texture2D Thumbnail;
+            public float LengthMeters;
+            public int Laps;
+        }
+
         [SerializeField] private string _raceScene = SceneLoader.TrackMain;
         [SerializeField] private GameObject _mainPanel;
         [SerializeField] private GameObject _settingsPanel;
@@ -26,9 +38,18 @@ namespace VRKart.UI
         [SerializeField] private Slider _sfxSlider;
         [SerializeField] private TMP_Text _sfxValueText;
 
-        [Header("트랙 선택 (#48)")]
+        [Header("트랙 선택 (#48) — _trackButton = 다음(▶)")]
         [SerializeField] private Button _trackButton;
         [SerializeField] private TMP_Text _trackText;
+        [SerializeField] private Button _prevTrackButton;
+        [SerializeField] private RawImage _trackThumbnail;
+        [SerializeField] private TMP_Text _trackInfoText;
+        [SerializeField] private TrackCard[] _cards;
+
+        [Header("타이틀 (#66, 앱을 켰을 때 한 번)")]
+        [SerializeField] private GameObject _titlePanel;
+        [SerializeField] private Button _titleButton;
+        [SerializeField] private TMP_Text _titleHint;
 
         [Header("타임어택 (TimeAttackSettings, #47)")]
         [SerializeField] private Button _modeButton;
@@ -47,6 +68,8 @@ namespace VRKart.UI
         [Header("배치")]
         [SerializeField, Min(0.5f)] private float _distance = 1.5f;
         [SerializeField] private float _heightOffset = -0.1f;
+        [SerializeField] private float _sideOffset;      // + = 오른쪽 (m)
+        [SerializeField] private float _yawOffset;       // 플레이어 쪽으로 틀기 (도)
 
         // 고를 수 있는 트랙 (씬 이름, 메뉴 표시 이름). 메뉴로 돌아와도 마지막 선택을 기억한다.
         private static readonly (string Scene, string Label)[] Tracks =
@@ -57,11 +80,22 @@ namespace VRKart.UI
             (SceneLoader.TrackCampusNight, "캠퍼스 야간"),
         };
         private static int s_trackIndex;
+        private static bool s_titleShown;
 
         public bool IsSettingsOpen => _settingsPanel.activeSelf;
 
+        public void ShowTitle()
+        {
+            s_titleShown = true;
+            if (_titlePanel == null) { ShowMain(); return; }
+            _titlePanel.SetActive(true);
+            _mainPanel.SetActive(false);
+            _settingsPanel.SetActive(false);
+        }
+
         public void ShowMain()
         {
+            if (_titlePanel != null) _titlePanel.SetActive(false);
             _mainPanel.SetActive(true);
             _settingsPanel.SetActive(false);
             UpdateTrackText();
@@ -77,21 +111,37 @@ namespace VRKart.UI
             UpdateVolumeText();
             UpdateComfortText();
             UpdateGhostText();
+            if (_titlePanel != null) _titlePanel.SetActive(false);
             _mainPanel.SetActive(false);
             _settingsPanel.SetActive(true);
         }
 
         private IEnumerator Start()
         {
-            ShowMain();
+            if (!s_titleShown) ShowTitle(); else ShowMain();   // 레이스에서 돌아오면 바로 메뉴
             yield return null;
-            PlayerSpace.PlaceInFront(transform, _distance, _heightOffset);
+            if (PlayerSpace.PlaceInFront(transform, _distance, _heightOffset) && (_sideOffset != 0f || _yawOffset != 0f))
+            {
+                transform.position += transform.right * _sideOffset;
+                transform.Rotate(0f, _yawOffset, 0f, Space.World);
+            }
+        }
+
+        // 타이틀의 "트리거를 눌러 시작" 깜빡임
+        private void Update()
+        {
+            if (_titleHint == null || _titlePanel == null || !_titlePanel.activeSelf) return;
+            var c = _titleHint.color;
+            c.a = 0.55f + 0.45f * Mathf.Cos(Time.unscaledTime * 3f);
+            _titleHint.color = c;
         }
 
         private void OnEnable()
         {
             _startButton.onClick.AddListener(HandleStart);
             if (_trackButton != null) _trackButton.onClick.AddListener(NextTrack);
+            if (_prevTrackButton != null) _prevTrackButton.onClick.AddListener(PreviousTrack);
+            if (_titleButton != null) _titleButton.onClick.AddListener(ShowMain);
             if (_modeButton != null) _modeButton.onClick.AddListener(ToggleMode);
             _settingsButton.onClick.AddListener(ShowSettings);
             _quitButton.onClick.AddListener(HandleQuit);
@@ -109,6 +159,8 @@ namespace VRKart.UI
         {
             _startButton.onClick.RemoveListener(HandleStart);
             if (_trackButton != null) _trackButton.onClick.RemoveListener(NextTrack);
+            if (_prevTrackButton != null) _prevTrackButton.onClick.RemoveListener(PreviousTrack);
+            if (_titleButton != null) _titleButton.onClick.RemoveListener(ShowMain);
             if (_modeButton != null) _modeButton.onClick.RemoveListener(ToggleMode);
             _settingsButton.onClick.RemoveListener(ShowSettings);
             _quitButton.onClick.RemoveListener(HandleQuit);
@@ -131,9 +183,27 @@ namespace VRKart.UI
             UpdateTrackText();
         }
 
+        private void PreviousTrack()
+        {
+            s_trackIndex = (s_trackIndex + Tracks.Length - 1) % Tracks.Length;
+            UpdateTrackText();
+        }
+
+        // 카드 정보가 있으면 이름만(카드 형태), 없으면 예전처럼 "트랙: 이름"
         private void UpdateTrackText()
         {
-            if (_trackText != null) _trackText.text = "트랙: " + Tracks[s_trackIndex].Label;
+            var track = Tracks[s_trackIndex];
+            int card = -1;
+            if (_cards != null) for (int i = 0; i < _cards.Length; i++) if (_cards[i].Scene == track.Scene) { card = i; break; }
+            if (_trackText != null) _trackText.text = card >= 0 ? track.Label : "트랙: " + track.Label;
+            if (card < 0) return;
+            if (_trackThumbnail != null) _trackThumbnail.texture = _cards[card].Thumbnail;
+            if (_trackInfoText != null)
+            {
+                var record = TimeAttackRecord.Load(track.Scene);
+                string best = record != null && record.BestTotal > 0f ? "최고 " + TimeFormat.Format(record.BestTotal) : "기록 없음";
+                _trackInfoText.text = $"{_cards[card].LengthMeters / 1000f:0.0}km  ·  {_cards[card].Laps}랩  ·  {best}";
+            }
         }
 
         // 그랑프리(AI와 레이스) ↔ 타임어택(혼자 주행 + 기록·고스트). 선택은 트랙과 같이 메뉴로 돌아와도 유지된다

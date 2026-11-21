@@ -181,6 +181,8 @@ Python(numpy·PIL)으로 만든 절차적 텍스처입니다. 라이선스 제�
 | `Textures/Night/Night_Sky·Night_Windows·Night_Beam·Night_Chevron.png` | 밤하늘, 창문 불빛, 전조등 불빛, 급커브 화살표 | 야간 트랙 |
 | `Textures/Nature/Nature_Leaves·Bark·Grass·Dirt·Roof.png` | 잎, 나무껍질, 풀, 흙, 옥상 | 나무·땅·옥상 재질 |
 | `Textures/Nature/ItemBox_Panel.png` | 아이템 박스 물음표 패널(글꼴 Arial Bold로 그린 "?") | 아이템 박스 |
+| `Textures/UI/ContactShadow.png` | 가운데가 짙은 둥근 그림자(에디터 스크립트로 생성) | 로비 전시 차 접지 그림자 |
+| `Textures/UI/TrackThumb_*.png` | 각 트랙 출발선 캡처(게임 화면) | 로비 트랙 카드·포스터 |
 
 ## 7. 크레딧
 

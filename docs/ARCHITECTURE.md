@@ -618,17 +618,21 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 
 ## UI — 메인 메뉴 · 일시정지 (`UI_MainMenu`, `UI_PauseMenu`)
 
-- **`Scenes/MainMenu.unity`**: XR Origin, `EventSystem` + `XRUIInputModule`, 바닥, `UI_MainMenu`
-  - `MainMenu` — `트랙: …`(누를 때마다 `서킷`(`Track_Main`) ↔ `동아대 캠퍼스`(`Track_Campus`), 메뉴로 돌아와도 기억) / `모드: 그랑프리 ↔ 타임어택`(#47, 위 타임어택 절) / `시작` → 고른 트랙 / `설정` → 볼륨 슬라이더 3개(전체·배경음악·효과음) / `종료`
-  - 패널 1000 × 830px(#47에서 버튼 1개·설정 1줄이 늘어 760 → 830). 메인 버튼은 높이 108px, 125px 간격.
-  - 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 정면 1.5m에 놓입니다(`PlayerSpace`).
-  - 제목 `VR 카트 레이싱`은 임시입니다. 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않았습니다. 프리팹 `MainPanel/Title` 텍스트에서 바꿉니다.
+- **`Scenes/MainMenu.unity` = 차고 로비 (#66 A안)**: XR Origin, `EventSystem` + `XRUIInputModule`, `Lobby`(차고), `UI_MainMenu`. 바닥 `Ground`는 렌더러를 끄고 충돌만 남겼습니다.
+  - **다시 만들기**: 메뉴 **VRKart > 로비 > 차고 로비 다시 만들기 (썸네일 포함)** (`Scripts/UI/Editor/GarageLobbyBuilder.cs`). 트랙을 바꾸거나 추가한 뒤 누르면 썸네일·길이·랩 수가 갱신됩니다(트랙을 추가하면 이 파일과 `MainMenu.Tracks` 두 곳에 등록).
+  - **차고** (`Lobby/Garage`, 메시 `Models/Lobby/Lobby_Garage.asset`, 재질 `Materials/Lobby/`): 14 × 14 × 5m. 반사되는 콘크리트 바닥(ambientCG Concrete031, 매끈함 0.78), 정면 세로 패널 벽 + `VR KART / RACING GARAGE` 로고(TextMeshPro 3D), 벽 1m 높이 청록 띠, 천장 조명 띠 3줄 + 턴테이블 위 조명 사각틀(Unlit — PC 화질에서는 블룸으로 빛남), 타이어 더미·공구함·바닥 안전선, 왼쪽 벽 트랙 포스터 4장. 재질별로 메시를 합쳐 차고는 그리기 11번, 삼각형 2.9천.
+  - **턴테이블** (`Lobby/Turntable`, `Turntable.cs`): 판 + 전시 차가 초당 12°로 돕니다. **시점은 고정**(NFR-03). 전시 차는 `Kart_AI_Sedan_Red`의 완성 외형(차체·바퀴·브레이크등)을 복사하고 도장만 플레이어 파랑으로 바꿨습니다(`Kart_Player`의 차체는 1인칭용이라 실내·바퀴가 빠져 있음). 차 밑에 접지 그림자 판(`Textures/UI/ContactShadow.png`, 직접 생성).
+  - **조명**: 해 1개(고도 68°, 천장·벽은 그림자를 만들지 않음) + Trilight 환경광 + 방 전체 반사 프로브 1개(박스 투영, 256px, `Textures/ReflectionProbes/MainMenu/Garage.exr`, 차·판은 빼고 구움).
+  - 로비 전체(UI 제외) 그리기 약 61번, 삼각형 5.3만(대부분 전시 차) — 목표 150 이하.
+  - `MainMenu` — **타이틀**(앱을 켰을 때 한 번: `VR KART / 동아대 캠퍼스 레이싱 / 트리거를 눌러 시작`, 레이스에서 돌아오면 바로 메뉴) → **트랙 카드**: 썸네일(`Textures/UI/TrackThumb_<씬>.png`) + 이름 + `1.0km · 3랩 · 최고 1:23.456`(타임어택 기록 `TimeAttackRecord`, 없으면 `기록 없음`), `<` `>`로 고르기(메뉴로 돌아와도 기억) / `모드: 그랑프리 ↔ 타임어택`(#47) / `시작`(청록) → 고른 트랙 / `설정` → 볼륨 슬라이더 3개(전체·배경음악·효과음) / `종료`
+  - 패널 1000 × 760px. 씬 시작 한 프레임 뒤(XR 트래킹이 잡힌 뒤) 플레이어 앞 1.5m에서 **왼쪽으로 0.62m, 플레이어 쪽으로 20° 틀어** 놓입니다(`_sideOffset`·`_yawOffset`) → 오른쪽 앞 턴테이블 위 차가 가려지지 않음.
+  - 닌텐도 IP 규칙([ASSETS.md](ASSETS.md)) 때문에 "마리오"는 쓰지 않습니다.
 - **설정** (`PlayerPrefs`): `GameSettings.MasterVolume`(= `AudioListener.volume`), `AudioVolumes.Music`·`AudioVolumes.Sfx`(아래 사운드 절). 게임 시작 시 저장된 값을 적용하고, 설정 화면을 닫을 때 저장합니다.
   - 멀미 저감(#6 `ComfortSettings`): **멀미 저감 켬/끔**(버튼) → `VignetteEnabled`, **강도** 슬라이더 → `VignetteIntensity`(끔이면 비활성), **수평 유지 켬/끔** → `HorizonLock`. `뒤로`를 누를 때 `ComfortSettings.Save()`. 방식(틴팅/가장자리)과 평가용 표시는 설정 화면에 넣지 않았습니다(기본 틴팅).
   - 고스트(#47): **고스트 표시 켬/끔** → `TimeAttackSettings.ShowGhost`. `뒤로`를 누를 때 `TimeAttackSettings.Save()`.
 - **`UI_PauseMenu`** (트랙 씬에 1개): **왼손 컨트롤러 메뉴(≡) 버튼**으로 `RaceManager.TogglePause()`를 부릅니다(XR 시뮬레이터에서도 왼손 컨트롤러의 menu 버튼으로 동작). `PauseChanged`에 따라 정면 1.5m, **눈높이 +0.08m**에 `계속 / 다시 시작 / 메뉴로`를 띄웁니다. 결과 화면은 +0.12m. 조종석 앞유리 안(눈 기준 약 10° 아래 ~ 19° 위)에 패널 전체가 들어오게 한 값입니다(그보다 낮으면 대시보드에 가려짐).
   - XRI 기본 입력 액션에는 메뉴 버튼이 없어서, `PauseMenu`가 `<XRController>{LeftHand}/{MenuButton}` 바인딩을 직접 만듭니다.
-- 빌드 씬 목록: `MainMenu`를 **맨 끝에 추가만** 했습니다. **빌드 첫 씬(0번)은 아직 CI용 `Changmin_Setup`**이라, APK를 실행하면 메뉴가 아니라 그 씬이 먼저 뜹니다. 첫 씬을 `MainMenu`로 바꿀지는 이창민과 합의가 필요합니다.
+- 빌드 씬 목록: **빌드 첫 씬(0번) = `MainMenu`** (#65, #66). APK를 실행하면 차고 로비가 먼저 뜹니다. `Changmin_Setup`·`Track_Test`는 목록에 그대로 둡니다.
 
 ### 한글 폰트 (TextMeshPro)
 
@@ -642,7 +646,8 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 - 원본 폰트: `Assets/ThirdParty/Fonts/Pretendard/Pretendard-SemiBold.otf` (+ `OFL.txt`). 원본은 수정하지 않습니다.
 - 테스트 씬: `Scenes/Sandbox/Seunghee_UI.unity` — 작은 사각 코스(체크포인트 6개)에서 플레이어·AI 테스트 카트가 2랩을 돕니다. HUD가 보이다가 약 25초 뒤 결과 화면이 뜹니다.
 
-**씬 전환 (`SceneLoader`)**: `Load(이름)`, `LoadMainMenu()`, `ReloadCurrent()`. 씬은 **Build Profiles의 Scene List에 등록돼 있어야** 로드됩니다(없으면 에러 대신 경고). 이름 상수는 `SceneLoader.MainMenu`, `TrackMain`, `TrackTest`입니다.
+**씬 전환 (`SceneLoader`)**: `Load(이름)`, `LoadMainMenu()`, `ReloadCurrent()`. 씬은 **Build Profiles의 Scene List에 등록돼 있어야** 로드됩니다(없으면 에러 대신 경고). 이름 상수는 `SceneLoader.MainMenu`, `TrackMain`, `TrackCampus`, `TrackBridge`, `TrackCampusNight`, `TrackTest`입니다.
+- **페이드 전환 (`SceneFader`, #66)**: 실행 중에는 `Load`가 화면을 0.3초 동안 검게 → `LoadSceneAsync` → 새 씬에서 0.45초 동안 밝게 합니다. 예전 `LoadScene`은 로드 중 VR 화면이 멈춰서(머리를 돌려도 화면이 안 따라옴) 멀미를 불렀습니다. 카메라 0.12m 앞 쿼드에 `Shaders/ScreenFade.shader`(깊이 무시·양쪽 눈)로 그리고, 재질은 `Resources/ScreenFade.mat`(빌드에 셰이더 포함용). 일시정지 중(timeScale 0)에도 동작. 카메라는 움직이지 않습니다(NFR-03).
 
 ## 사운드 & 진동 (#14)
 
@@ -674,7 +679,7 @@ Waiting ──(Start Delay 1초)──▶ Countdown 3,2,1 ──▶ Racing (GO) 
 ## 씬 흐름
 
 ```
-MainMenu ──시작──▶ Track_Main 또는 Track_Campus (Countdown → Racing → Finished) ──재시작──▶ Track_Main
+MainMenu(차고 로비) ──시작──▶ 고른 트랙 4개 중 하나 (Countdown → Racing → Finished) ──재시작──▶ 같은 트랙
     ▲                                                          │
     └──────────────────────────메뉴──────────────────────────────┘
 ```
