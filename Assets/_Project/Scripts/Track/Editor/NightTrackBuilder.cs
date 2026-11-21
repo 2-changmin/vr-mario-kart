@@ -278,6 +278,13 @@ namespace VRKart.Track.Editor
 
         private static void ConvertCampusToNight()
         {
+            // PC 시연용 입체 건물(낮 전용 재질)은 야간 씬에서 뺀다 → 야간은 두 단계 모두 창문 불빛 외벽
+            var campusRoot = GameObject.Find("Campus");
+            foreach (var name in new[] { "Buildings_PC", "QualityTier" })
+            {
+                var pcOnly = campusRoot != null ? campusRoot.transform.Find(name) : null;   // 꺼진 오브젝트도 찾음
+                if (pcOnly != null) Object.DestroyImmediate(pcOnly.gameObject);
+            }
             foreach (var b in Object.FindObjectsByType<TrackMeshBuilder>(FindObjectsSortMode.None)) b.Rebuild();
             var layout = Object.FindAnyObjectByType<TrackLayout>();
             var windows = Texture("Night_Windows.png", TextureWrapMode.Repeat);
