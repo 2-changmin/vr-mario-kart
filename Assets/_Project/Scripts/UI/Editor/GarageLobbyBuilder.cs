@@ -51,6 +51,28 @@ namespace VRKart.UI.Editor
             Rebuild();
         }
 
+        // 로비 전체를 다시 만들지 않고 전시 차만 교체(씬 diff 최소화)
+        [MenuItem("VRKart/로비/전시 차만 다시 놓기")]
+        public static void RebuildShowcaseCarMenu()
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            RebuildShowcaseCar();
+        }
+
+        public static void RebuildShowcaseCar()
+        {
+            var scene = EditorSceneManager.OpenScene(MenuScene);
+            var table = GameObject.Find("Lobby/Turntable");
+            if (table == null) { Debug.LogError("[GarageLobbyBuilder] Lobby/Turntable이 없습니다. 차고 로비부터 만드세요."); return; }
+            var old = table.transform.Find("ShowcaseCar");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            table.transform.rotation = Quaternion.identity;
+            PlaceShowcaseCar(table.transform);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("[GarageLobbyBuilder] 전시 차 다시 놓기 완료");
+        }
+
         public static void Rebuild()
         {
             var cards = CaptureThumbnails();
@@ -400,36 +422,7 @@ namespace VRKart.UI.Editor
             disc.AddComponent<MeshFilter>().sharedMesh = discMesh;
             var dr = disc.AddComponent<MeshRenderer>(); dr.sharedMaterial = discMat; dr.lightProbeUsage = LightProbeUsage.Off;
 
-            var car = ShowcaseCar();
-            if (car != null)
-            {
-                car.SetParent(table, true);
-                // 새로 만든 렌더러의 bounds는 아직 갱신 전이라 메시 경계를 직접 변환해서 잰다
-                var bounds = new Bounds(car.position, Vector3.zero); bool any = false;
-                foreach (var f in car.GetComponentsInChildren<MeshFilter>())
-                {
-                    var b = f.sharedMesh.bounds;
-                    for (int c = 0; c < 8; c++)
-                    {
-                        var corner = f.transform.TransformPoint(b.center + Vector3.Scale(b.extents, new Vector3((c & 1) == 0 ? -1 : 1, (c & 2) == 0 ? -1 : 1, (c & 4) == 0 ? -1 : 1)));
-                        if (!any) { bounds = new Bounds(corner, Vector3.zero); any = true; } else bounds.Encapsulate(corner);
-                    }
-                }
-                car.position += new Vector3(TurntableCenter.x - bounds.center.x, DiscTop - bounds.min.y, TurntableCenter.z - bounds.center.z);
-                car.rotation = Quaternion.Euler(0f, -35f, 0f) * car.rotation;   // 처음엔 비스듬히 앞을 보게
-                // 접지 그림자: 차 밑 부드러운 타원(판과 같이 돎) — 바퀴가 판에 닿아 보이게
-                var blob = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                Object.DestroyImmediate(blob.GetComponent<Collider>());
-                blob.name = "ContactShadow";
-                blob.transform.SetParent(car, false);
-                Vector3 local = car.InverseTransformPoint(new Vector3(bounds.center.x, DiscTop + 0.004f, bounds.center.z));
-                blob.transform.localPosition = local;
-                blob.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                blob.transform.localScale = new Vector3(2.5f, 5.4f, 1f);
-                var br = blob.GetComponent<MeshRenderer>();
-                br.sharedMaterial = ContactShadowMaterial();
-                br.shadowCastingMode = ShadowCastingMode.Off; br.receiveShadows = false; br.lightProbeUsage = LightProbeUsage.Off; br.reflectionProbeUsage = ReflectionProbeUsage.Off;
-            }
+            PlaceShowcaseCar(table);
 
             // 조명·환경
             var oldGround = GameObject.Find("Ground");
@@ -487,6 +480,40 @@ namespace VRKart.UI.Editor
             Debug.Log($"[GarageLobbyBuilder] 차고 재질 {Parts.Count}개(그리기 {Parts.Count}번), 삼각형 {tris:N0}");
         }
 
+        // 전시 차를 턴테이블 위 가운데에 놓고 접지 그림자를 붙인다(차 바닥 = 판 윗면)
+        private static void PlaceShowcaseCar(Transform table)
+        {
+            var car = ShowcaseCar();
+            if (car == null) return;
+            car.SetParent(table, true);
+            car.rotation = Quaternion.Euler(0f, -35f, 0f) * car.rotation;   // 처음엔 비스듬히 앞을 보게 (돌린 뒤에 경계를 재야 가운데에 맞는다)
+            // 새로 만든 렌더러의 bounds는 아직 갱신 전이라 메시 경계를 직접 변환해서 잰다
+            var bounds = new Bounds(car.position, Vector3.zero); bool any = false;
+            foreach (var f in car.GetComponentsInChildren<MeshFilter>())
+            {
+                var b = f.sharedMesh.bounds;
+                for (int c = 0; c < 8; c++)
+                {
+                    var corner = f.transform.TransformPoint(b.center + Vector3.Scale(b.extents, new Vector3((c & 1) == 0 ? -1 : 1, (c & 2) == 0 ? -1 : 1, (c & 4) == 0 ? -1 : 1)));
+                    if (!any) { bounds = new Bounds(corner, Vector3.zero); any = true; } else bounds.Encapsulate(corner);
+                }
+            }
+            car.position += new Vector3(TurntableCenter.x - bounds.center.x, DiscTop - bounds.min.y, TurntableCenter.z - bounds.center.z);
+            // 접지 그림자: 차 밑 부드러운 타원(판과 같이 돎) — 바퀴가 판에 닿아 보이게
+            var blob = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Object.DestroyImmediate(blob.GetComponent<Collider>());
+            blob.name = "ContactShadow";
+            blob.transform.SetParent(car, false);
+            // 차를 옮긴 뒤의 가운데(= 턴테이블 중심) 바로 위. 크기는 차의 축소 비율을 빼고 월드 기준 2.5m × 5.4m
+            blob.transform.localPosition = car.InverseTransformPoint(new Vector3(TurntableCenter.x, DiscTop + 0.004f, TurntableCenter.z));
+            blob.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            Vector3 carScale = car.lossyScale;
+            blob.transform.localScale = new Vector3(2.5f / carScale.x, 5.4f / carScale.z, 1f / carScale.y);
+            var br = blob.GetComponent<MeshRenderer>();
+            br.sharedMaterial = ContactShadowMaterial();
+            br.shadowCastingMode = ShadowCastingMode.Off; br.receiveShadows = false; br.lightProbeUsage = LightProbeUsage.Off; br.reflectionProbeUsage = ReflectionProbeUsage.Off;
+        }
+
         // 전시 차: AI 세단의 완성 외형(차체·바퀴·브레이크등)을 복사하고 도장만 플레이어 차 색으로. 스크립트·충돌·그림자 판·번호판 없음.
         // (Kart_Player의 차체는 1인칭용이라 실내·바퀴가 빠져 있어서 밖에서 보면 껍데기만 보인다)
         private static Transform ShowcaseCar()
@@ -497,6 +524,7 @@ namespace VRKart.UI.Editor
             Material playerPaint = player != null ? player.sharedMaterials.FirstOrDefault(m => m != null && m.name.StartsWith("CarConcept_Paint_Player")) : null;
             var car = new GameObject("ShowcaseCar").transform;
             car.SetPositionAndRotation(source.position, source.rotation);
+            car.localScale = source.lossyScale;   // 원본 Car는 0.82배. 루트에 같은 배율을 줘야 차체와 바퀴 위치가 함께 줄어든다
             foreach (var mr in source.GetComponentsInChildren<MeshRenderer>(true))
             {
                 bool raceNumber = false;
@@ -508,7 +536,8 @@ namespace VRKart.UI.Editor
                 go.transform.SetParent(car, false);
                 go.transform.localPosition = source.InverseTransformPoint(mr.transform.position);
                 go.transform.localRotation = Quaternion.Inverse(source.rotation) * mr.transform.rotation;
-                go.transform.localScale = mr.transform.lossyScale;
+                Vector3 ls = mr.transform.lossyScale, ss = source.lossyScale;
+                go.transform.localScale = new Vector3(ls.x / ss.x, ls.y / ss.y, ls.z / ss.z);
                 go.AddComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
                 var r = go.AddComponent<MeshRenderer>();
                 var mats = mr.sharedMaterials;
