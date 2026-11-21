@@ -112,6 +112,13 @@ cd vr-mario-kart
 
 메뉴 버튼은 마우스로 클릭합니다. `Esc`는 에디터가 가로채서 쓰지 않습니다.
 
+**PC 점검용 빌드 (Windows 실행 파일, #80)**: 에디터 없이 앱처럼 로비 → 레이스 → 결과를 점검·시연할 때 씁니다.
+
+1. Unity 메뉴 **`VRKart > 빌드 > PC 점검용 빌드 (Windows)`** → `Builds/Windows/VRKart.exe` (레포에는 올리지 않음, 처음 한 번은 플랫폼 전환 때문에 몇 분 걸림). 빌드가 끝나면 플랫폼은 자동으로 Android로 돌아옵니다.
+2. `VRKart.exe` 실행 → 1600×900 창. 헤드셋이 없으면 PC 운전 모드(위 키 표)가 자동으로 켜지고, 화질은 PC 시연 화질입니다.
+3. 메뉴·일시정지·결과 버튼은 **마우스 클릭**, 운전은 키보드. 설정·타임어택 기록은 PC에 저장됩니다(`%USERPROFILE%\AppData\LocalLow\DefaultCompany\VR Kart`).
+4. 다른 사람에게 줄 때는 `Builds/Windows` 폴더 전체를 압축해서 공유합니다(`VR Kart_BurstDebugInformation_DoNotShip` 폴더는 빼도 됨).
+
 ---
 
 ## 🛠️ 개발 환경

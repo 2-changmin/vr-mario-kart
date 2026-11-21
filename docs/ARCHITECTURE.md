@@ -135,6 +135,8 @@ namespace VRKart.Core
   - 멀미 저감: 3인칭에서는 차 유리가 시야에 없어서 `WindowTint`를 `Soft`(화면 가장자리)로 대신 씁니다(`ComfortVignette`, 저장된 설정은 그대로).
   - 확인: 3인칭으로 통합 자동 테스트 33/33(트랙 4개 출발, 그랑프리·타임어택·고스트·일시정지·결과), 서킷·캠퍼스 주행 화면. 서킷 같은 지점 그리기 1인칭 178 → 3인칭 96, 삼각형 14.8만 → 10.4만(실내를 안 그려서).
 - **PC 운전 모드** (에디터·PC 빌드만, `#if UNITY_EDITOR || UNITY_STANDALONE`): `Race/Testing/DesktopDriveController`가 실행 시 자동으로 생기고, 헤드셋이 없으면(`XRSettings.isDeviceActive == false`) `Core/DesktopDriveMode.Active`를 켜고 **XR Interaction Simulator를 끕니다**(R = 기기 리셋, Shift = 왼손 전환 등 키가 겹쳐서). `PlayerKartInput`은 이 모드일 때만 키보드를 함께 읽습니다: T 가속, Shift 브레이크(멈추면 0), R 후진(= 계속 브레이크), J/L 조향, Space 드리프트, E 아이템. P 일시정지, F1 모드 전환. 키 표는 README.
+  - **마우스로 메뉴 누르기**(`Core/DesktopUiMouse`, #80): 월드 공간 UI에는 XR 레이저용 `TrackedDeviceGraphicRaycaster`만 있는데 이 레이캐스터는 마우스 이벤트를 무시합니다(그래서 예전에는 마우스로 메뉴를 누를 수 없었음). PC 운전 모드일 때만 같은 Canvas에 마우스용 `GraphicRaycaster`를 붙여 켜고, 시뮬레이터·헤드셋에서는 끕니다. 씬이 바뀌거나 모드가 바뀔 때만 Canvas를 다시 찾습니다.
+  - **PC 점검용 Windows 빌드**(`Core/Editor/PcBuildMenu`, 메뉴 `VRKart > 빌드 > PC 점검용 빌드 (Windows)`, #80): **먼저 Windows로 전환한 뒤** 빌드합니다. URP는 빌드할 때 활성 플랫폼의 품질 단계에서 쓰는 기능만 남기고 셰이더·리소스를 빼는데, Android(Mobile 단계 = SSAO·후처리 없음)인 채로 빌드하면 PC 단계의 SSAO·후처리가 빠져 매 프레임 렌더링 오류가 났습니다. 빌드가 끝나면 원래 플랫폼으로 되돌립니다(되돌릴 플랫폼을 EditorPrefs에 적어 두고 컴파일이 끝난 뒤 다시 확인). Player Settings: 앱 이름 `VR Kart`, 창 모드 1600×900(크기 조절 가능). 헤드셋 런타임이 없으면 OpenXR이 오류 몇 줄을 남기고 일반 화면으로 실행됩니다.
 - 테스트 씬: `Scenes/Sandbox/Changmin_Steering.unity`. XR Interaction Simulator에서 `]`(오른손 선택) → `G`(잡기) + `Q`/`E`(위아래 이동)로 핸들 회전, `Shift+2` = 왼손 Y(리센터).
 
 ### 멀미 저감 (`ComfortSettings`, #6)
