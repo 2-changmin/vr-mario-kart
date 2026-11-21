@@ -112,7 +112,7 @@ namespace VRKart.Track.Editor
                 { "Campus_LightGray", Lit("CampusPC_PlasterGray", new Color(0.80f, 0.81f, 0.84f), "Plaster002", 0.15f) },
                 { "Campus_Lavender", Lit("CampusPC_WallLavender", new Color(0.82f, 0.80f, 0.90f), "Plaster002", 0.18f) },
             };
-            var glass = Lit("CampusPC_Glass", new Color(0.16f, 0.24f, 0.31f), null, 0.96f, 0.25f);
+            var glass = Lit("CampusPC_Glass", new Color(0.30f, 0.38f, 0.45f), null, 0.95f, 0.55f);
             var blind = Lit("CampusPC_Blind", new Color(0.72f, 0.71f, 0.66f), null, 0.25f);
             var frame = Lit("CampusPC_Frame", new Color(0.17f, 0.18f, 0.20f), null, 0.5f, 0.6f);
             var stone = Lit("CampusPC_Plinth", new Color(0.50f, 0.50f, 0.50f), "Concrete031", 0.25f);
@@ -204,6 +204,7 @@ namespace VRKart.Track.Editor
             var tierOld = root.parent.Find("QualityTier");
             if (tierOld != null) Object.DestroyImmediate(tierOld.gameObject);
             var tier = new GameObject("QualityTier").AddComponent<QualityTierObjects>();
+            tier.gameObject.AddComponent<PcLightingOverride>();   // PC 단계: 늦은 오후 해·안개
             tier.transform.SetParent(root.parent, false);
             var so = new SerializedObject(tier);
             var pcOnly = so.FindProperty("_pcOnly"); pcOnly.arraySize = 1; pcOnly.GetArrayElementAtIndex(0).objectReferenceValue = pcRoot.gameObject;
