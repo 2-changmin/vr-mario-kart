@@ -106,7 +106,7 @@ Quest 2 기준으로 처음부터 이렇게 설정합니다. 바꿀 때는 `Proj
 | Feature Group | **Meta Quest Support** 켜기 → Target Devices에 **Quest 2** 포함 |
 | Interaction Profile | **Oculus Touch Controller Profile** 추가 |
 | Render Mode | **Single Pass Instanced / Multiview** (눈 두 개를 한 번에 렌더) |
-| Foveated Rendering | 켜기 (시야 가장자리 해상도를 낮춰 GPU 절약) — 가장자리가 흐리면 레벨 낮춤 |
+| Foveated Rendering | 켜기 (시야 가장자리 해상도를 낮춰 GPU 절약) — Meta Quest Support의 **Foveated Rendering API = SRP Foveation**(URP 권장, #15). 단계는 실행 중 `QuestPerformance`가 `XRDisplaySubsystem.foveatedRenderingLevel = 0.5`로 설정. 가장자리가 흐리면 낮춤 |
 | Symmetric Projection / Optimize Buffer Discards (Vulkan) | 켜기 (Meta 권장 최적화) |
 | 주사율 | 기본 **72Hz** 유지. 성능 여유가 확인되면 90Hz 검토 |
 
@@ -131,6 +131,16 @@ Quest 2 기준으로 처음부터 이렇게 설정합니다. 바꿀 때는 `Proj
 | 3. APK 실기기 | Android 빌드 → Build And Run 또는 Meta Quest Developer Hub로 설치 | **성능(FPS) 확인은 반드시 이 단계에서** (Link는 PC GPU로 돌아가서 성능이 다름) |
 
 > ⚠️ Quest Link에서 잘 돌아가도 **APK에서는 느릴 수 있습니다.** 성능 판단은 항상 APK 기준.
+
+### 실기기 테스트 날 순서 (#15)
+
+1. **개발자 모드·USB 디버깅** (아래 절, 1회) → `adb devices`에 기기가 보이는지. adb: `C:\Program Files\Unity\Hub\Editor\6000.3.15f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe`
+2. Unity 메뉴 **`VRKart > 빌드 > Quest APK 빌드 + 기기에 설치·실행`** → `Builds/Android/VRKart.apk`(약 80MB, 레포에 올리지 않음)를 설치하고 바로 실행. 앱 ID `com.dau.vrkart`, 헤드셋 앱 목록의 "알 수 없는 출처"에 `VR Kart`로 보임
+3. **성능 기록**: PC에서 `adb logcat -s Unity` → 5초마다 `[Perf] 씬 평균 fps · 가장 느린 프레임 · 목표 못 맞춘 프레임 수 · FFR 단계`(`Scripts/XR/QuestPerformance.cs`, Quest 빌드에만 들어감). 트랙마다 출발 후 1분 이상 달리고 [TEST_CHECKLIST.md](TEST_CHECKLIST.md) H절에 적기. 72fps가 안 나오면 #67의 순서(실시간 그림자 끔 → 렌더 해상도·FFR 단계 → 숲·건물 수 → 안개·먼 거리)대로 줄임
+4. **통합 체크리스트 Quest 열**(A~F), 메뉴 1.5m 가독성(#12), 3인칭(#64) 멀미 느낌
+5. **SSQ 멀미 평가**(#46, [SSQ_TEST.md](SSQ_TEST.md)) — 동의 절차 확인 후
+6. Quest 화면 녹화(시연 영상, #16)
+7. 프로파일러가 필요하면 `Quest 개발 빌드 + 설치·실행 (프로파일러)` — 개발 빌드는 느리므로 fps 숫자는 일반 빌드로 기록
 
 ### 개발자 모드 준비 (대여 기기 받으면 1회)
 
